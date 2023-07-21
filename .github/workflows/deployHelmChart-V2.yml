@@ -51,11 +51,13 @@ jobs:
       run: |
         echo "KUBE_CONFIG=${{ secrets.KUBE_CONFIG_DEV }}" >> $GITHUB_ENV
         echo "KUBE_NAMESPACE=${{ vars.KUBE_NAMESPACE_DEV }}" >> $GITHUB_ENV
+        echo "KUBE_CLUSTER=${{ vars.KUBE_CLUSTER_DEV }}" >> $GITHUB_ENV
     - name: Define KUBE variables if prod
       if: ${{ inputs.ENVIRONMENT == 'dev' }}
       run: |
-        echo "KUBE_CONFIG=${{ secrets.KUBE_CONFIG_DEV }}" >> $GITHUB_ENV
-        echo "KUBE_NAMESPACE=${{ vars.KUBE_NAMESPACE_DEV }}" >> $GITHUB_ENV
+        echo "KUBE_CONFIG=${{ secrets.KUBE_CONFIG_PROD }}" >> $GITHUB_ENV
+        echo "KUBE_NAMESPACE=${{ vars.KUBE_NAMESPACE_PROD }}" >> $GITHUB_ENV
+        echo "KUBE_CLUSTER=${{ vars.KUBE_CLUSTER_PROD }}" >> $GITHUB_ENV
     - name: Set chart repo name
       if: ${{ inputs.HELM_CHART_REPO }}
       run: echo "HELM_CHART_REPO=${{ inputs.HELM_CHART_REPO }}" >> $GITHUB_ENV
