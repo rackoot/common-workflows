@@ -1,0 +1,112 @@
+on:
+  workflow_call:
+    inputs:
+      RELEASE_REVISION:
+        required: true
+        type: string
+      HELM_CHART_REPO:
+        required: false
+        type: string
+      VALUES_LOCAL_PATH:
+        required: false
+        type: string
+      ENVIRONMENT:
+        required: true
+        type: string
+      KUBE_NAMESPACE:
+        required: false
+        type: string
+      KUBE_CLUSTER:
+        required: false
+        type: string
+      DEPLOYMENT:
+        required: true
+        type: string
+      VALUES:
+        required: false
+        type: string
+      DRYRUN:
+        required: false
+        type: string
+      DEBUG:
+        required: false
+        type: string
+
+name: Deploy helm chart V2  s
+
+env:
+  DEPLOYMENT: ${{ inputs.DEPLOYMENT }}
+  VALUES_LOCAL_PATH: helm/chart
+  HELM_CHART_REPO: s3://grokit-helm-charts
+  VALUES: environment=${{ inputs.ENVIRONMENT }},app_version=${{ inputs.RELEASE_REVISION }}
+
+jobs:
+  reusable_workflow_job:
+    name: Deploy Chart
+    runs-on: ubuntu-latest
+    #environment: ${{ inputs.ENVIRONMENT }}
+    steps:
+    - name: Define KUBE variables if dev
+      if: ${{ inputs.ENVIRONMENT == 'dev' }}
+      run: |
+        echo "KUBE_CONFIG=${{ secrets.KUBE_CONFIG_DEV }}" >> $GITHUB_ENV
+        echo "KUBE_NAMESPACE=${{ vars.KUBE_NAMESPACE_DEV }}" >> $GITHUB_ENV
+    - name: Define KUBE variables if prod
+      if: ${{ inputs.ENVIRONMENT == 'dev' }}
+      run: |
+        echo "KUBE_CONFIG=${{ secrets.KUBE_CONFIG_DEV }}" >> $GITHUB_ENV
+        echo "KUBE_NAMESPACE=${{ vars.KUBE_NAMESPACE_DEV }}" >> $GITHUB_ENV
+    - name: Set chart repo name
+      if: ${{ inputs.HELM_CHART_REPO }}
+      run: echo "HELM_CHART_REPO=${{ inputs.HELM_CHART_REPO }}" >> $GITHUB_ENV
+
+    - name: Set deployment name # if is different from secrets.DEPLOYMENT
+      if: ${{ inputs.DEPLOYMENT }}
+      run: echo "DEPLOYMENT=${{ inputs.DEPLOYMENT }}" >> $GITHUB_ENV
+
+    - name: Set values path # if it's not helm/chart
+      if: ${{ inputs.VALUES_LOCAL_PATH }}
+      run: echo "VALUES_LOCAL_PATH=${{ inputs.VALUES_LOCAL_PATH }}" >> $GITHUB_ENV
+
+    - name: Set values
+      if: ${{ inputs.VALUES }}
+      run: echo "VALUES=${{ inputs.VALUES }}" >> $GITHUB_OUTPUT
+
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ inputs.RELEASE_REVISION }}
+
+    - name: Get values from master if not exists in tag
+      run: |
+        if [ ! -f "${{ env.VALUES_LOCAL_PATH }}/env/values-${{ inputs.ENVIRONMENT }}.yaml" ]
+        then
+          echo "CHECKOUT_MASTER=1" >> $GITHUB_ENV
+        fi
+   
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+
+    - name: Install s3 helm plugin
+      uses: MartinQuesada/github-action-helm3@v2
+      with: 
+        exec: helm plugin install https://github.com/hypnoglow/helm-s3.git
+
+    - name: Deploy chart
+      uses: MartinQuesada/eks-helm-deploy-action@v3
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+        cluster-name: ${{ vars.KUBE_CLUSTER }}
+        chart-path: ${{ env.DEPLOYMENT }}/${{ env.DEPLOYMENT }}
+        chart-repository:  ${{ env.HELM_CHART_REPO }}/${{ env.DEPLOYMENT }}
+        name: ${{ env.DEPLOYMENT }}-${{ inputs.ENVIRONMENT }}
+        namespace: ${{ vars.KUBE_NAMESPACE }}
+        values: ${{ env.VALUES }}
+        config-files: ${{ env.VALUES_LOCAL_PATH }}/env/values-${{ inputs.ENVIRONMENT }}.yaml
+        chart-version: ${{ inputs.RELEASE_REVISION }}
+        dry-run: ${{ inputs.DRYRUN }}
+        debug: ${{ inputs.DEBUG }}
+

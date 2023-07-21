@@ -1,0 +1,37 @@
+on:
+  workflow_call:
+    inputs:
+      RELEASE_REVISION:
+        required: true
+        type: string
+      ECR_REPOSITORY:
+        required: true
+        type: string
+
+name: Verify docker image exists
+
+jobs:
+  reusable_workflow_job:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1-node16
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ vars.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: ACTIONS_ALLOW_UNSECURE_COMMANDS
+      run: echo 'ACTIONS_ALLOW_UNSECURE_COMMANDS=true' >> $GITHUB_ENV
+    - name: Verify image exists
+      uses: giboow/action-aws-cli@v1
+      with:
+        args: ecr describe-images --repository-name ${{ inputs.ECR_REPOSITORY }} --region ${{ secrets.AWS_REGION }} --image-ids=imageTag="${{ inputs.RELEASE_REVISION }}"
+      env:
+        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: ${{ env.AWS_REGION}}

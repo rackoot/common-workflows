@@ -1,0 +1,40 @@
+on:
+  workflow_call:
+    inputs:
+      SLACK_CHANNEL:
+        required: true
+        type: string
+      RELEASE_REVISION:
+        required: true
+        type: string
+      ENVIRONMENT:
+        required: true
+        type: string
+      GITHUB_ACTOR:
+        required: true
+        type: string
+      DEPLOYMENT:
+        required: false
+        type: string
+
+name: Success Slack Notification
+
+env:
+  SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+  DEPLOYMENT: ${{ secrets.DEPLOYMENT }}
+
+jobs:
+  reusable_workflow_job:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set deployment name # if is different from secrets.DEPLOYMENT
+      if: ${{ inputs.DEPLOYMENT }}
+      run: echo "DEPLOYMENT=${{ inputs.DEPLOYMENT }}" >> $GITHUB_ENV
+    - name: Notify slack
+      uses: pullreminders/slack-action@master
+      with:
+        args: '{\"channel\":\"${{ inputs.SLACK_CHANNEL }}\",
+          \"text\":\"\r\n\r\n---------------------\r\n:blush: Success deploy: Project *${{ env.DEPLOYMENT }}*\r\n
+          Tag/Commit version: *${{ inputs.RELEASE_REVISION }}*\r\n
+          Environment: *${{ inputs.ENVIRONMENT }}*\r\n
+          Launched by: *${{ github.actor }}*\"}'

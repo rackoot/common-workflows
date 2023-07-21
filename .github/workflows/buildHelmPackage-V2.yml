@@ -1,0 +1,80 @@
+on:
+  workflow_call:
+    inputs:
+      LOCAL_PATH:
+        required: true
+        type: string
+      RELEASE_REVISION:
+        required: true
+        type: string
+      HELM_CHART_REPO:
+        required: true
+        type: string
+      DEPLOYMENT:
+        required: false
+        type: string
+
+name: Build Helm Package
+
+env:
+  DEPLOYMENT: ${{ secrets.DEPLOYMENT }}
+
+jobs:
+  reusable_workflow_job:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set deployment name # if is different from secrets.DEPLOYMENT
+      if: ${{ inputs.DEPLOYMENT != '' }}
+      run: echo "DEPLOYMENT=${{ inputs.DEPLOYMENT }}" >> $GITHUB_ENV
+
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ env.BRANCH }}
+
+    - name: Switch to master/main branch name
+      run: git switch $(git branch -r |grep -Eo 'main|master' |head -1)
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1-node16
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ vars.AWS_REGION }}
+
+    - name: Prep helm chart
+      run: |
+        mv ${{ inputs.LOCAL_PATH }}/Chart.yaml ${{ inputs.LOCAL_PATH }}/Chart.old.yaml &&
+        cat ${{ inputs.LOCAL_PATH }}/Chart.old.yaml | grep -Ev "appVersion|version" > ${{ inputs.LOCAL_PATH }}/Chart.yaml &&
+        echo -e "\r\nappVersion: ${{ inputs.RELEASE_REVISION }}\r\n" >> ${{ inputs.LOCAL_PATH }}/Chart.yaml &&
+        echo -e "\r\nversion: ${{ inputs.RELEASE_REVISION }}\r\n" >> ${{ inputs.LOCAL_PATH }}/Chart.yaml &&
+        if [[ -f ${{ inputs.LOCAL_PATH }}/templates/deployment.yaml ]]
+        then
+          sed -i 's/{{ .Values.app_version }}/${{ inputs.RELEASE_REVISION }}/g' ${{ inputs.LOCAL_PATH }}/templates/deployment.yaml
+        fi
+        if [[ -f ${{ inputs.LOCAL_PATH }}/templates/cronjob.yaml ]]
+        then
+          sed -i 's/{{ .Values.app_version }}/${{ inputs.RELEASE_REVISION }}/g' ${{ inputs.LOCAL_PATH }}/templates/cronjob.yaml
+        fi
+        cat ${{ inputs.LOCAL_PATH }}/Chart.yaml
+        echo ${{ inputs.HELM_CHART_REPO }}/${{ env.DEPLOYMENT }} |sed 's/./& /g'
+
+    - name: Install s3 helm plugin
+      uses: WyriHaximus/github-action-helm3@v2
+      with: 
+        exec: helm plugin install https://github.com/hypnoglow/helm-s3.git
+
+    - name: Helm package chart
+      uses: WyriHaximus/github-action-helm3@v2
+      with: 
+        exec: helm package ${{ inputs.LOCAL_PATH }}
+
+    - name: Helm add repo
+      uses: WyriHaximus/github-action-helm3@v2
+      with: 
+        exec: helm repo add ${{ env.DEPLOYMENT }} ${{ inputs.HELM_CHART_REPO }}/${{ env.DEPLOYMENT }}
+
+    - name: Helm push chart
+      uses: WyriHaximus/github-action-helm3@v2
+      with: 
+        exec: helm s3 push --relative --force ./${{ env.DEPLOYMENT }}-${{ inputs.RELEASE_REVISION }}.tgz ${{ env.DEPLOYMENT }}
