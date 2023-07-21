@@ -15,7 +15,7 @@ name: Scan docker images for vulnerabilities
 
 env:
   DOCKER_IMAGE: 801814269951.dkr.ecr.us-east-1.amazonaws.com/${{ inputs.ECR_REPOSITORY }}:${{ inputs.RELEASE_REVISION }}
-  DEPLOYMENT: ${{ secrets.DEPLOYMENT }}
+  DEPLOYMENT: ${{ vars.DEPLOYMENT }}
 
 jobs:
   reusable_workflow_job:
