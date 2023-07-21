@@ -90,13 +90,13 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha }}
 
-    - name: Install s3 helm plugin
-      uses: MartinQuesada/github-action-helm3@v2
-      with: 
-        exec: helm plugin install https://github.com/hypnoglow/helm-s3.git
+#    - name: Install s3 helm plugin
+#      uses: MartinQuesada/github-action-helm3@v2
+#      with: 
+#        exec: helm plugin install https://github.com/hypnoglow/helm-s3.git
 
     - name: Deploy chart
-      uses: MartinQuesada/eks-helm-deploy-action@v3
+      uses: MartinQuesada/eks-helm-deploy-action@v3.2
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -104,11 +104,12 @@ jobs:
         cluster-name: ${{ env.KUBE_CLUSTER }}
         chart-path: rackoot-app/${{ env.DEPLOYMENT }}
         chart-repository:  ${{ env.HELM_CHART_REPO }}/${{ env.DEPLOYMENT }}
-        name: ${{ env.DEPLOYMENT }}-${{ inputs.ENVIRONMENT }}
+        name: ${{ env.DEPLOYMENT }}
         namespace: ${{ env.KUBE_NAMESPACE }}
         values: ${{ env.VALUES }}
         config-files: ${{ env.VALUES_LOCAL_PATH }}/env/values-${{ inputs.ENVIRONMENT }}.yaml
         chart-version: ${{ inputs.RELEASE_REVISION }}
+        helm-s3-plugin: true
         dry-run: ${{ inputs.DRYRUN }}
         debug: ${{ inputs.DEBUG }}
 
