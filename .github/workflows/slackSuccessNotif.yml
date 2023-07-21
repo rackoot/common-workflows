@@ -29,8 +29,23 @@ jobs:
       if: ${{ inputs.DEPLOYMENT }}
       run: echo "DEPLOYMENT=${{ inputs.DEPLOYMENT }}" >> $GITHUB_ENV
     - name: Notify slack
-      uses: pullreminders/slack-action@master
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }} # required
+        VERSION_TAG: ${{ inputs.version-tag }} # NOTE github context can be used to retrieve inputs/outputs/context
+        ACTION_STATUS: "success :thumbsup:" # NOTE Slack 'mrkdwn' format is supported
+        TEXT_MESSAGE: "Build of notify-slack-action has been done successfully!" # Override the template variable $VERSION_TAG
+      uses: evryfs/notify-slack-action@latest
       with:
-        args: '{\"channel\":\"${{ inputs.SLACK_CHANNEL }}\",
-          \"text\":\"\r\n\r\n---------------------\r\n:blush: Success build: Project *${{ env.DEPLOYMENT }}* \n\r
-          Tag/Commit version: *${{ inputs.RELEASE_REVISION }}*\"}'
+        channel-id: ${{ inputs.SLACK_CHANNEL }}
+        mechanism: blocks
+        value: | # Make sure to use | in order to parse JSON text
+          [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "\"\r\n\r\n---------------------\r\n:blush: Success build: Project *${{ env.DEPLOYMENT }}* \n\r
+          Tag/Commit version: *${{ inputs.RELEASE_REVISION }}*\"
+              }
+            }
+          ]
