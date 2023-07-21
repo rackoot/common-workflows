@@ -100,7 +100,7 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
         cluster-name: ${{ vars.KUBE_CLUSTER }}
-        chart-path: ${{ env.DEPLOYMENT }}/${{ env.DEPLOYMENT }}
+        chart-path: ${{ env.DEPLOYMENT }}
         chart-repository:  ${{ env.HELM_CHART_REPO }}/${{ env.DEPLOYMENT }}
         name: ${{ env.DEPLOYMENT }}-${{ inputs.ENVIRONMENT }}
         namespace: ${{ vars.KUBE_NAMESPACE }}

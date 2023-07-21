@@ -11,7 +11,7 @@ on:
         required: true
         type: string
       DEPLOYMENT:
-        required: false
+        required: true
         type: string
 
 name: Build Helm Package
