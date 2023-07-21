@@ -18,6 +18,7 @@ on:
         type: string
 
 name: Failed Slack Notification
+run-name: Failed Slack Notification
 
 env:
   SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -31,7 +32,7 @@ jobs:
       if: ${{ inputs.DEPLOYMENT }}
       run: echo "DEPLOYMENT=${{ inputs.DEPLOYMENT }}" >> $GITHUB_ENV
     - name: Notify slack
-      uses: pullreminders/slack-action@master
+      uses: pullreminders/slack-action@v1.0.9
       with:
         args: '{\"channel\":\"${{ inputs.SLACK_CHANNEL }}\",
           \"text\":\"\r\n\r\n---------------------\r\n:disappointed: Failed deploy: Project *${{ env.DEPLOYMENT }}*\r\n

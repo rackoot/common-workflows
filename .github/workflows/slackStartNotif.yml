@@ -15,6 +15,7 @@ on:
         type: string
 
 name: Start Task Slack Notification
+run-name: Start Task Slack Notification
 
 env:
   SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -28,7 +29,7 @@ jobs:
       if: ${{ inputs.DEPLOYMENT }}
       run: echo "DEPLOYMENT=${{ inputs.DEPLOYMENT }}" >> $GITHUB_ENV
     - name: Notify slack
-      uses: pullreminders/slack-action@master
+      uses: pullreminders/slack-action@v1.0.9
       with:
         args: '{\"channel\":\"${{ inputs.SLACK_CHANNEL }}\",\"text\":\"\r\n\r\n---------------------\r\n:construction: Starting build: Project *${{ env.DEPLOYMENT }}*\r\n
         Tag version: *${{ inputs.RELEASE_REVISION }}*\r\n

@@ -15,6 +15,7 @@ on:
         type: string
 
 name: Success Slack Notification
+run-name: Success Slack Notification
 
 env:
   SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

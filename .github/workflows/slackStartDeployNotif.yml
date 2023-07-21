@@ -18,6 +18,7 @@ on:
         type: string
 
 name: Start Task Slack Notification
+run-name: Start Task Slack Notification
 
 env:
   SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
