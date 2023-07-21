@@ -1,0 +1,73 @@
+on:
+  workflow_call:
+    inputs:
+      RELEASE_REVISION:
+        required: true
+        type: string
+      ECR_REPOSITORY:
+        required: true
+        type: string
+      ENVIRONMENT:
+        required: true
+        type: string
+      KUBE_NAMESPACE:
+        required: true
+        type: string
+      KUBE_CLUSTER:
+        required: true
+        type: string
+      CONTAINER:
+        required: false
+        type: string
+      DEPLOYMENT:
+        required: false
+        type: string
+
+name: Build and push docker image
+
+env:
+  DEPLOYMENT: ${{ vars.DEPLOYMENT }}
+
+jobs:
+  reusable_workflow_job:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set deployment name # if is different from secrets.DEPLOYMENT
+      if: ${{ inputs.DEPLOYMENT }}
+      run: echo "DEPLOYMENT=${{ inputs.DEPLOYMENT }}" >> $GITHUB_ENV
+
+    - name: Set CONTAINER var if false
+      if: ${{ inputs.CONTAINER == '' }}
+      run: echo "CONTAINER=${{ env.DEPLOYMENT }}" >> $GITHUB_ENV
+
+    - name: Set EKS cluster
+      run: |
+        echo "KUBE_CONFIG_DATA=${{ secrets.KUBE_CONFIG_PROD }}" >> $GITHUB_ENV
+    - name: Set EKS cluster if not prod
+      if: ${{ inputs.KUBE_CLUSTER != 'rackoot-prod' }}
+      run: |
+        echo ${{ inputs.KUBE_CLUSTER }}
+        echo "KUBE_CONFIG_DATA=${{ secrets.KUBE_CONFIG_DEV }}" >> $GITHUB_ENV
+
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1-node16
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+   
+    - name: Deploy to Kubernetes cluster
+      uses: datanextsolutions/kubectl-aws-eks@master
+      env:
+        RELEASE_IMAGE: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.RELEASE_REVISION }}
+      with:
+        args: set image deployment/${{ env.DEPLOYMENT }} ${{ env.CONTAINER }}=${{ env.RELEASE_IMAGE }} -n ${{ inputs.KUBE_NAMESPACE }}
