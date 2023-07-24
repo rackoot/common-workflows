@@ -90,11 +90,6 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha }}
 
-#    - name: Install s3 helm plugin
-#      uses: MartinQuesada/github-action-helm3@v2
-#      with: 
-#        exec: helm plugin install https://github.com/hypnoglow/helm-s3.git
-
     - name: Deploy chart
       uses: MartinQuesada/eks-helm-deploy-action@v3.2
       with:
