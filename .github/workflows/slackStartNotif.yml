@@ -44,7 +44,7 @@ jobs:
               "type": "section",
               "text": {
                 "type": "mrkdwn",
-                "text": "\r\n\r\n---------------------\r\n:construction: Starting build: Project *${{ env.DEPLOYMENT }}*\r\n
+                "text": "\r\n\r\n---------------------\r\n:construction: Starting build: Project *${{ vars.DEPLOYMENT }}*\r\n
             Tag version: *${{ inputs.RELEASE_REVISION }}*\r\n
             Launched by: *${{ inputs.GITHUB_ACTOR }}*\r\n
             --- (:candle:)"

@@ -44,7 +44,7 @@ jobs:
               "type": "section",
               "text": {
                 "type": "mrkdwn",
-                "text": "\"\r\n\r\n---------------------\r\n:blush: Success build: Project *${{ env.DEPLOYMENT }}* \n\r
+                "text": "\"\r\n\r\n---------------------\r\n:blush: Success build: Project *${{ vars.DEPLOYMENT }}* \n\r
           Tag/Commit version: *${{ inputs.RELEASE_REVISION }}*\"
               }
             }

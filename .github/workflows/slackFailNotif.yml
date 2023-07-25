@@ -44,7 +44,7 @@ jobs:
               "type": "section",
               "text": {
                 "type": "mrkdwn",
-                "text": "\r\n\r\n---------------------\r\n:disappointed: Failed build: Project *${{ env.DEPLOYMENT }}*\r\n
+                "text": "\r\n\r\n---------------------\r\n:disappointed: Failed build: Project *${{ vars.DEPLOYMENT }}*\r\n
           Tag/Commit version: *${{ inputs.RELEASE_REVISION }}*"
               }
             }
