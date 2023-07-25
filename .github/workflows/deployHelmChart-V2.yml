@@ -97,6 +97,7 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ vars.AWS_REGION }}
         cluster-name: ${{ env.KUBE_CLUSTER }}
+        chart-name: ${{ env.DEPLOYMENT }}
         chart-path: rackoot-app/${{ env.DEPLOYMENT }}
         chart-repository:  ${{ env.HELM_CHART_REPO }}/${{ env.DEPLOYMENT }}
         name: ${{ env.DEPLOYMENT }}
