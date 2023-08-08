@@ -56,7 +56,7 @@ jobs:
       if: ${{ inputs.GENERATE_SSL_KEY }}
       run: |
         openssl genrsa -aes128 -passout pass:${{ secrets.SSL_PASSPHRASE }} -out key.pem 2048
-        openssl rsa -in key.pem -passin pass::${{ secrets.SSL_PASSPHRASE }} -pubout -out public.pem
+        openssl rsa -in key.pem -passin pass:${{ secrets.SSL_PASSPHRASE }} -pubout -out public.pem
 
     - name: Build & Push Image
       env:
