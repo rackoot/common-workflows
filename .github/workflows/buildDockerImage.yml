@@ -10,6 +10,9 @@ on:
       DOCKER_FILE:
         required: true
         type: string
+      GENERATE_SSL_KEY:
+        required: false
+        type: boolean
 
 name: Build and push docker image
 
@@ -48,6 +51,12 @@ jobs:
         key: ${{ runner.os }}-single-buildx-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-single-buildx
+
+    - name: Gnerate SSL key
+      if: ${{ inputs.GENERATE_SSL_KEY }}
+      run: |
+        openssl genrsa -aes128 -passout pass:${{ secters.SSL_PASSPHRASE }} -out key.pem 2048
+        openssl rsa -in key.pem -passin pass::${{ secrets.SSL_PASSPHRASE }} -pubout -out public.pem
 
     - name: Build & Push Image
       env:
