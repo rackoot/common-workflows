@@ -17,7 +17,7 @@ on:
 name: Build Helm Package
 
 env:
-  DEPLOYMENT: ${{ secrets.DEPLOYMENT }}
+  DEPLOYMENT: ${{ vars.DEPLOYMENT }}
 
 jobs:
   reusable_workflow_job:
