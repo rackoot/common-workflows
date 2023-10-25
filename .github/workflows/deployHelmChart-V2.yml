@@ -52,6 +52,12 @@ jobs:
         echo "KUBE_CONFIG=${{ secrets.KUBE_CONFIG_DEV }}" >> $GITHUB_ENV
         echo "KUBE_NAMESPACE=${{ vars.KUBE_NAMESPACE_DEV }}" >> $GITHUB_ENV
         echo "KUBE_CLUSTER=${{ vars.KUBE_CLUSTER_DEV }}" >> $GITHUB_ENV
+    - name: Define KUBE variables if test
+      if: ${{ inputs.ENVIRONMENT == 'test' }}
+      run: |
+        echo "KUBE_CONFIG=${{ secrets.KUBE_CONFIG_TEST }}" >> $GITHUB_ENV
+        echo "KUBE_NAMESPACE=${{ vars.KUBE_NAMESPACE_TEST }}" >> $GITHUB_ENV
+        echo "KUBE_CLUSTER=${{ vars.KUBE_CLUSTER_TEST }}" >> $GITHUB_ENV
     - name: Define KUBE variables if prod
       if: ${{ inputs.ENVIRONMENT == 'prod' }}
       run: |
