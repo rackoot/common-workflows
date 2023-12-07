@@ -38,7 +38,7 @@ env:
   DEPLOYMENT: ${{ inputs.DEPLOYMENT }}
   VALUES_LOCAL_PATH: helm/chart
   HELM_CHART_REPO: s3://grokit-helm-charts
-  VALUES: environment=${{ inputs.ENVIRONMENT }},app_version=${{ inputs.RELEASE_REVISION }},secretAccessKey=${{ secrets.AWS_ACCESS_KEY_ID }},accessKeyID={{ secrets.AWS_SECRET_ACCESS_KEY }}
+  VALUES: environment=${{ inputs.ENVIRONMENT }},app_version=${{ inputs.RELEASE_REVISION }},secretAccessKey=${{ secrets.AWS_ACCESS_KEY_ID }},accessKeyID=${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
 jobs:
   reusable_workflow_job:
