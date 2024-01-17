@@ -60,21 +60,21 @@ jobs:
         echo ${{ inputs.HELM_CHART_REPO }}/${{ env.DEPLOYMENT }} |sed 's/./& /g'
 
     - name: Install s3 helm plugin
-      uses: WyriHaximus/github-action-helm3@v2
+      uses: MartinQuesada/github-action-helm3@v3
       with: 
         exec: helm plugin install https://github.com/hypnoglow/helm-s3.git
 
     - name: Helm package chart
-      uses: WyriHaximus/github-action-helm3@v2
+      uses: MartinQuesada/github-action-helm3@v3
       with: 
         exec: helm package ${{ inputs.LOCAL_PATH }}
 
     - name: Helm add repo
-      uses: WyriHaximus/github-action-helm3@v2
+      uses: MartinQuesada/github-action-helm3@v3
       with: 
         exec: helm repo add ${{ env.DEPLOYMENT }} ${{ inputs.HELM_CHART_REPO }}/${{ env.DEPLOYMENT }}
 
     - name: Helm push chart
-      uses: WyriHaximus/github-action-helm3@v2
+      uses: MartinQuesada/github-action-helm3@v3
       with: 
         exec: helm s3 push --relative --force ./${{ env.DEPLOYMENT }}-${{ inputs.RELEASE_REVISION }}.tgz ${{ env.DEPLOYMENT }}
