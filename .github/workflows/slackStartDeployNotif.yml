@@ -37,7 +37,7 @@ jobs:
         VERSION_TAG: ${{ inputs.version-tag }} # NOTE github context can be used to retrieve inputs/outputs/context
         ACTION_STATUS: "success :thumbsup:" # NOTE Slack 'mrkdwn' format is supported
         TEXT_MESSAGE: "Build of notify-slack-action has been done successfully!" # Override the template variable $VERSION_TAG
-      uses: MartinQuesada/notify-slack-action@v2
+      uses: evryfs/notify-slack-action@latest
       with:
         channel-id: ${{ inputs.SLACK_CHANNEL }}
         mechanism: blocks
