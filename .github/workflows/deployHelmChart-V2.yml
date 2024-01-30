@@ -81,7 +81,7 @@ jobs:
       run: echo "VALUES=${{ inputs.VALUES }}" >> $GITHUB_OUTPUT
 
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         ref: ${{ inputs.RELEASE_REVISION }}
 
@@ -92,7 +92,7 @@ jobs:
           echo "CHECKOUT_MASTER=1" >> $GITHUB_ENV
         fi
    
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         ref: ${{ github.event.pull_request.head.sha }}
 
