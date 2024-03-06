@@ -86,7 +86,7 @@ jobs:
 
     - name: Set chart_name if exist inputs.CHART_NAME
       if: ${{ inputs.CHART_NAME }}
-      run: echo "CHART_NAME=${{ inputs.CHART_NAME }}" >> $GITHUB_OUTPUT
+      run: echo "CHART_NAME=${{ inputs.CHART_NAME }}" >> $GITHUB_ENV
 
     - name: Checkout
       uses: actions/checkout@v4
