@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 if [ -z "$INPUT_LABEL" ]; then
     echo "INPUT_LABEL must be set."
