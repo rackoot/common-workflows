@@ -68,7 +68,7 @@ jobs:
         fi
 
     - name: Upload to slack
-      uses: MeilCli/slack-upload-file@v2
+      uses: MeilCli/slack-upload-file@v4
       with:
         slack_token: ${{ secrets.SLACK_BOT_TOKEN }}
         channels: ${{ vars.SLACK_CHANNEL }}
@@ -95,7 +95,7 @@ jobs:
         INPUT_ASSIGNEE: MartinQIremedy
         INPUT_PROJECT_ID: ${{ env.DEPLOYMENT }}
         INPUT_FILENAME: os.json
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: scripts/commitIssue.sh
 
     - name: Run Trivy libs vulnerability scanner
@@ -116,5 +116,5 @@ jobs:
         INPUT_ASSIGNEE: ${{ env.GITHUB_REPOSITORY_OWNER }}
         INPUT_PROJECT_ID: ${{ env.DEPLOYMENT }}
         INPUT_FILENAME: library.json
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: scripts/commitIssue.sh
