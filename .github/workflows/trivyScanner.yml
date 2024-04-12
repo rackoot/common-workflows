@@ -57,64 +57,64 @@ jobs:
         output: ${{ env.DEPLOYMENT }}.log
         security-checks: vuln
 
-#    # Set slack_post to true if vulnerabilities found
-#    - name: Set slack post
-#      run: |
-#        if [[ $(grep "Total: 0 (HIGH: 0, CRITICAL: 0)" ${{ env.DEPLOYMENT }}.log) = '' ]]
-#        then
-#          echo "SLACK_MESSAGE=:disappointed: Vulnerabilities found in ${{ env.DEPLOYMENT }}" >> $GITHUB_ENV
-#        else
-#          echo "SLACK_MESSAGE=:blush: Congratulations! No vulnerabilities found in ${{ env.DEPLOYMENT }}" >> $GITHUB_ENV
-#        fi
-#
-#    - name: Upload to slack
-#      uses: MeilCli/slack-upload-file@v2
-#      with:
-#        slack_token: ${{ secrets.SLACK_BOT_TOKEN }}
-#        channels: ${{ vars.SLACK_CHANNEL }}
-#        file_path: '${{ env.DEPLOYMENT }}.log'
-#        file_type: 'text'
-#        initial_comment: '${{ env.SLACK_MESSAGE }}'
-#        title: "Vulnerabilities report for ${{ env.DEPLOYMENT }}"
-#
-#    - name: Run Trivy os vulnerability scanner
-#      uses: aquasecurity/trivy-action@master
-#      with:
-#        image-ref: ${{ env.DOCKER_IMAGE }}
-#        format: 'json'
-#        exit-code: '0'
-#        ignore-unfixed: true
-#        vuln-type: 'os'
-#        severity: 'CRITICAL,HIGH'
-#        output: os.json
-#        security-checks: vuln
-#
-#    - name: Create issues for os vulnerabilities
-#      env:
-#        INPUT_LABEL: vulnerability
-#        INPUT_ASSIGNEE: MartinQIremedy
-#        INPUT_PROJECT_ID: ${{ env.DEPLOYMENT }}
-#        INPUT_FILENAME: os.json
-#        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-#      run: scripts/commitIssue.sh
-#
-#    - name: Run Trivy libs vulnerability scanner
-#      uses: aquasecurity/trivy-action@master
-#      with:
-#        image-ref: ${{ env.DOCKER_IMAGE }}
-#        format: 'json'
-#        exit-code: '0'
-#        ignore-unfixed: true
-#        vuln-type: 'library'
-#        severity: 'CRITICAL,HIGH'
-#        output: library.json
-#        security-checks: vuln
-#
-#    - name: Create issues for libs vulnerabilities
-#      env:
-#        INPUT_LABEL: vulnerability
-#        INPUT_ASSIGNEE: ${{ env.GITHUB_REPOSITORY_OWNER }}
-#        INPUT_PROJECT_ID: ${{ env.DEPLOYMENT }}
-#        INPUT_FILENAME: library.json
-#        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-#      run: scripts/commitIssue.sh
+    # Set slack_post to true if vulnerabilities found
+    - name: Set slack post
+      run: |
+        if [[ $(grep "Total: 0 (HIGH: 0, CRITICAL: 0)" ${{ env.DEPLOYMENT }}.log) = '' ]]
+        then
+          echo "SLACK_MESSAGE=:disappointed: Vulnerabilities found in ${{ env.DEPLOYMENT }}" >> $GITHUB_ENV
+        else
+          echo "SLACK_MESSAGE=:blush: Congratulations! No vulnerabilities found in ${{ env.DEPLOYMENT }}" >> $GITHUB_ENV
+        fi
+
+    - name: Upload to slack
+      uses: MeilCli/slack-upload-file@v2
+      with:
+        slack_token: ${{ secrets.SLACK_BOT_TOKEN }}
+        channels: ${{ vars.SLACK_CHANNEL }}
+        file_path: '${{ env.DEPLOYMENT }}.log'
+        file_type: 'text'
+        initial_comment: '${{ env.SLACK_MESSAGE }}'
+        title: "Vulnerabilities report for ${{ env.DEPLOYMENT }}"
+
+    - name: Run Trivy os vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.DOCKER_IMAGE }}
+        format: 'json'
+        exit-code: '0'
+        ignore-unfixed: true
+        vuln-type: 'os'
+        severity: 'CRITICAL,HIGH'
+        output: os.json
+        security-checks: vuln
+
+    - name: Create issues for os vulnerabilities
+      env:
+        INPUT_LABEL: vulnerability
+        INPUT_ASSIGNEE: MartinQIremedy
+        INPUT_PROJECT_ID: ${{ env.DEPLOYMENT }}
+        INPUT_FILENAME: os.json
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: scripts/commitIssue.sh
+
+    - name: Run Trivy libs vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.DOCKER_IMAGE }}
+        format: 'json'
+        exit-code: '0'
+        ignore-unfixed: true
+        vuln-type: 'library'
+        severity: 'CRITICAL,HIGH'
+        output: library.json
+        security-checks: vuln
+
+    - name: Create issues for libs vulnerabilities
+      env:
+        INPUT_LABEL: vulnerability
+        INPUT_ASSIGNEE: ${{ env.GITHUB_REPOSITORY_OWNER }}
+        INPUT_PROJECT_ID: ${{ env.DEPLOYMENT }}
+        INPUT_FILENAME: library.json
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: scripts/commitIssue.sh
