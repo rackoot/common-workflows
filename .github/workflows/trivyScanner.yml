@@ -71,7 +71,7 @@ jobs:
       uses: MeilCli/slack-upload-file@v4
       with:
         slack_token: ${{ secrets.SLACK_BOT_TOKEN }}
-        channel_id: ${{ vars.SLACK_CHANNEL }}
+        channel_id: C06U4N04VA7
         file_path: '${{ env.DEPLOYMENT }}.log'
         file_type: 'text'
         initial_comment: '${{ env.SLACK_MESSAGE }}'
