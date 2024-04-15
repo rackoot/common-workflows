@@ -15,8 +15,8 @@ if [ -z "$GITHUB_REPOSITORY" ]; then
     exit 1
 fi
 
-export GITHUB_TOKEN=$GH_TOKEN
-echo $GITHUB_TOKEN
+#export GITHUB_TOKEN=$GH_TOKEN
+#echo $GITHUB_TOKEN | sed "/$GITHUB_TOKEN//"
 
 if [[ $(gh label list |grep vulnerability) = '' ]]
 then

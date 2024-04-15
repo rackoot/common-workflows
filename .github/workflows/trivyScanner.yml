@@ -95,7 +95,7 @@ jobs:
         INPUT_ASSIGNEE: MartinQIremedy
         INPUT_PROJECT_ID: ${{ env.DEPLOYMENT }}
         INPUT_FILENAME: os.json
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       run: scripts/commitIssue.sh
 
     - name: Run Trivy libs vulnerability scanner
