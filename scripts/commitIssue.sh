@@ -20,6 +20,8 @@ then
 	gh label create "$INPUT_LABEL" --repo "$GITHUB_REPOSITORY"
 fi
 
+export GITHUB_TOKEN=$GH_TOKEN
+
 issues=$(gh --repo "$GITHUB_REPOSITORY" issue list --label "$INPUT_LABEL" --json title --jq '.[].title')
 
 json_file=$(cat "$INPUT_FILENAME")
