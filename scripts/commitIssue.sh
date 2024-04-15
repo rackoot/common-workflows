@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 if [ -z "$INPUT_LABEL" ]; then
     echo "INPUT_LABEL must be set."
@@ -15,12 +15,13 @@ if [ -z "$GITHUB_REPOSITORY" ]; then
     exit 1
 fi
 
+export GITHUB_TOKEN=$GH_TOKEN
+echo $GITHUB_TOKEN
+
 if [[ $(gh label list |grep vulnerability) = '' ]]
 then
 	gh label create "$INPUT_LABEL" --repo "$GITHUB_REPOSITORY"
 fi
-
-export GITHUB_TOKEN=$GH_TOKEN
 
 issues=$(gh --repo "$GITHUB_REPOSITORY" issue list --label "$INPUT_LABEL" --json title --jq '.[].title')
 
