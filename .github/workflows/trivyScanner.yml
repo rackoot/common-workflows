@@ -55,12 +55,19 @@ jobs:
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH'
         output: ${{ env.DEPLOYMENT }}.log
-        security-checks: vuln
+        #security-checks: vuln-type
 
     # Set slack_post to true if vulnerabilities found
     - name: Set slack post
       run: |
-        if [[ $(grep "Total: 0 (HIGH: 0, CRITICAL: 0)" ${{ env.DEPLOYMENT }}.log) = '' ]]
+        for vuln in $(grep "^Total:" ${{ env.DEPLOYMENT }}.log)
+        do
+          if [[ $(echo $vuln |grep -e "Total: [^0]") != "" ]]
+          then
+            vulnerabilities=1
+          fi
+        done
+        if [[ $vulnerabilities = 1 ]]
         then
           echo "SLACK_MESSAGE=:disappointed: Vulnerabilities found in ${{ env.DEPLOYMENT }}" >> $GITHUB_ENV
         else
@@ -87,7 +94,7 @@ jobs:
         vuln-type: 'os'
         severity: 'CRITICAL,HIGH'
         output: os.json
-        security-checks: vuln
+        #security-checks: vuln-type
 
     - name: Create issues for os vulnerabilities
       env:
@@ -95,7 +102,7 @@ jobs:
         INPUT_ASSIGNEE: MartinQIremedy
         INPUT_PROJECT_ID: ${{ env.DEPLOYMENT }}
         INPUT_FILENAME: os.json
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: scripts/commitIssue.sh
 
     - name: Run Trivy libs vulnerability scanner
@@ -108,7 +115,7 @@ jobs:
         vuln-type: 'library'
         severity: 'CRITICAL,HIGH'
         output: library.json
-        security-checks: vuln
+        #security-checks: vuln-type
 
     - name: Create issues for libs vulnerabilities
       env:
@@ -116,5 +123,5 @@ jobs:
         INPUT_ASSIGNEE: ${{ env.GITHUB_REPOSITORY_OWNER }}
         INPUT_PROJECT_ID: ${{ env.DEPLOYMENT }}
         INPUT_FILENAME: library.json
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: scripts/commitIssue.sh
