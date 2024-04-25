@@ -60,13 +60,14 @@ jobs:
     # Set slack_post to true if vulnerabilities found
     - name: Set slack post
       run: |
-        for vuln in $(grep "^Total:" ${{ env.DEPLOYMENT }}.log)
+        grep "^Total:" ${{ env.DEPLOYMENT }}.log > totals.log
+        while read vuln
         do
           if [[ $(echo $vuln |grep -e "Total: [^0]") != "" ]]
           then
             vulnerabilities=1
           fi
-        done
+        done < totals.log
         if [[ $vulnerabilities = 1 ]]
         then
           echo "SLACK_MESSAGE=:disappointed: Vulnerabilities found in ${{ env.DEPLOYMENT }}" >> $GITHUB_ENV
