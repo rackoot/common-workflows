@@ -55,7 +55,7 @@ jobs:
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH'
         output: ${{ env.DEPLOYMENT }}.log
-        #security-checks: vuln-type
+        timeout: 10m
 
     # Set slack_post to true if vulnerabilities found
     - name: Set slack post
@@ -95,7 +95,7 @@ jobs:
         vuln-type: 'os'
         severity: 'CRITICAL,HIGH'
         output: os.json
-        #security-checks: vuln-type
+        timeout: 10m
 
     - name: Create issues for os vulnerabilities
       env:
