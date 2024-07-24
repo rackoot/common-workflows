@@ -63,6 +63,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         RELEASE_IMAGE: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.RELEASE_REVISION }}
       run: |
-        DOCKER_OPTS="${DOCKER_OPTS} --registry-mirror=https://mirror.gcr.io"  docker build -t ${{ inputs.ECR_REPOSITORY }}:${{ inputs.RELEASE_REVISION }} . -f ${{ inputs.DOCKER_FILE }} --build-arg GITHUB_TOKEN=${{ env.GITHUB_TOKEN }}
+        DOCKER_OPTS="${DOCKER_OPTS} --registry-mirror=https://mirror.gcr.io"  docker build -t ${{ inputs.ECR_REPOSITORY }}:${{ inputs.RELEASE_REVISION }} . -f ${{ inputs.DOCKER_FILE }} --build-arg GIT_TAG_VERSION=${{ env.RELEASE_REVISION }}
         docker tag ${{ inputs.ECR_REPOSITORY }}:${{ inputs.RELEASE_REVISION }} ${{ env.RELEASE_IMAGE  }}
         docker push ${{ env.RELEASE_IMAGE  }}
