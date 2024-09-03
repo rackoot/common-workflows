@@ -16,6 +16,9 @@ on:
       ENVIRONMENT:
         required: true
         type: string
+      AWS_ACCOUNT:
+          required: true
+          type: string
       KUBE_NAMESPACE:
         required: false
         type: string
@@ -42,7 +45,7 @@ env:
   CHART_NAME: ${{ inputs.DEPLOYMENT }}
   VALUES_LOCAL_PATH: helm/chart
   HELM_CHART_REPO: s3://grokit-helm-charts
-  VALUES: environment=${{ inputs.ENVIRONMENT }},app_version=${{ inputs.RELEASE_REVISION }},secretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY }},accessKeyID=${{ secrets.AWS_ACCESS_KEY_ID }}
+  VALUES: environment=${{ inputs.ENVIRONMENT }},app_version=${{ inputs.RELEASE_REVISION }},secretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY }},accessKeyID=${{ secrets.AWS_ACCESS_KEY_ID }},aws_account_id=${{ inputs.AWS_ACCOUNT }}
 
 jobs:
   reusable_workflow_job:
