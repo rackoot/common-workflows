@@ -63,7 +63,7 @@ jobs:
       if: ${{ inputs.AWS_ACCOUNT == '533267199925' }}
       run: |
         echo "KUBE_CONFIG=${{ secrets.KUBE_CONFIG_DEV_NEW }}" >> $GITHUB_ENV
-        echo "VALUES='environment=${{ inputs.ENVIRONMENT }},app_version=${{ inputs.RELEASE_REVISION }},secretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY }},accessKeyID=${{ secrets.AWS_ACCESS_KEY_ID }},aws_account_id=${{ inputs.AWS_ACCOUNT }}'" >> $GITHUB_ENV
+        echo "VALUES='environment=${{ inputs.ENVIRONMENT }},app_version=${{ inputs.RELEASE_REVISION }},secretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY_NEW }},accessKeyID=${{ secrets.AWS_ACCESS_KEY_ID_NEW }},aws_account_id=${{ inputs.AWS_ACCOUNT }}'" >> $GITHUB_ENV
     - name: Define KUBE variables if test
       if: ${{ inputs.ENVIRONMENT == 'test' }}
       run: |
@@ -80,7 +80,7 @@ jobs:
       if: ${{ inputs.AWS_ACCOUNT == '533267199925' }}
       run: |
         echo "KUBE_CONFIG=${{ secrets.KUBE_CONFIG_PROD_NEW }}" >> $GITHUB_ENV
-        echo "VALUES='environment=${{ inputs.ENVIRONMENT }},app_version=${{ inputs.RELEASE_REVISION }},secretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY }},accessKeyID=${{ secrets.AWS_ACCESS_KEY_ID }},aws_account_id=${{ inputs.AWS_ACCOUNT }}'" >> $GITHUB_ENV
+        echo "VALUES='environment=${{ inputs.ENVIRONMENT }},app_version=${{ inputs.RELEASE_REVISION }},secretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY_NEW }},accessKeyID=${{ secrets.AWS_ACCESS_KEY_ID_NEW }},aws_account_id=${{ inputs.AWS_ACCOUNT }}'" >> $GITHUB_ENV
     - name: Set chart repo name
       if: ${{ inputs.HELM_CHART_REPO }}
       run: echo "HELM_CHART_REPO=${{ inputs.HELM_CHART_REPO }}" >> $GITHUB_ENV
