@@ -1,128 +1,128 @@
-on:
-  workflow_call:
-    inputs:
-      RELEASE_REVISION:
-        required: true
-        type: string
-      ECR_REPOSITORY:
-        required: true
-        type: string
-      DEPLOYMENT:
-        required: false
-        type: string
-
-name: Scan docker images for vulnerabilities
-
-env:
-  DOCKER_IMAGE: 801814269951.dkr.ecr.us-east-1.amazonaws.com/${{ inputs.ECR_REPOSITORY }}:${{ inputs.RELEASE_REVISION }}
-  DEPLOYMENT: ${{ vars.DEPLOYMENT }}
-
-jobs:
-  reusable_workflow_job:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        repository: rackoot/common-workflows
-        ref: main
-
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ vars.AWS_REGION }}
-
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
-
-    - name: Pull docker image
-      run: docker pull ${{ env.DOCKER_IMAGE }}
-
-    - name: Set deployment name # if is different from secrets.DEPLOYMENT
-      if: ${{ inputs.DEPLOYMENT }}
-      run: echo "DEPLOYMENT=${{ inputs.DEPLOYMENT }}" >> $GITHUB_ENV
-
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: ${{ env.DOCKER_IMAGE }}
-        format: 'table'
-        exit-code: '0'
-        ignore-unfixed: true
-        vuln-type: 'os,library'
-        severity: 'CRITICAL,HIGH'
-        output: ${{ env.DEPLOYMENT }}.log
-        timeout: 10m
-
-    # Set slack_post to true if vulnerabilities found
-    - name: Set slack post
-      run: |
-        grep "^Total:" ${{ env.DEPLOYMENT }}.log > totals.log
-        while read vuln
-        do
-          if [[ $(echo $vuln |grep -e "Total: [^0]") != "" ]]
-          then
-            vulnerabilities=1
-          fi
-        done < totals.log
-        if [[ $vulnerabilities = 1 ]]
-        then
-          echo "SLACK_MESSAGE=:disappointed: Vulnerabilities found in ${{ env.DEPLOYMENT }}" >> $GITHUB_ENV
-        else
-          echo "SLACK_MESSAGE=:blush: Congratulations! No vulnerabilities found in ${{ env.DEPLOYMENT }}" >> $GITHUB_ENV
-        fi
-
-    - name: Upload to slack
-      uses: MeilCli/slack-upload-file@v4
-      with:
-        slack_token: ${{ secrets.SLACK_BOT_TOKEN }}
-        channel_id: ${{ vars.SLACK_CHANNEL }}
-        file_path: '${{ env.DEPLOYMENT }}.log'
-        file_type: 'text'
-        initial_comment: '${{ env.SLACK_MESSAGE }}'
-        title: "Vulnerabilities report for ${{ env.DEPLOYMENT }}"
-
-    - name: Run Trivy os vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: ${{ env.DOCKER_IMAGE }}
-        format: 'json'
-        exit-code: '0'
-        ignore-unfixed: true
-        vuln-type: 'os'
-        severity: 'CRITICAL,HIGH'
-        output: os.json
-        timeout: 10m
-
-    - name: Create issues for os vulnerabilities
-      env:
-        INPUT_LABEL: vulnerability
-        INPUT_ASSIGNEE: MartinQIremedy
-        INPUT_PROJECT_ID: ${{ env.DEPLOYMENT }}
-        INPUT_FILENAME: os.json
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: scripts/commitIssue.sh
-
-    - name: Run Trivy libs vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: ${{ env.DOCKER_IMAGE }}
-        format: 'json'
-        exit-code: '0'
-        ignore-unfixed: true
-        vuln-type: 'library'
-        severity: 'CRITICAL,HIGH'
-        output: library.json
-        #security-checks: vuln-type
-
-    - name: Create issues for libs vulnerabilities
-      env:
-        INPUT_LABEL: vulnerability
-        INPUT_ASSIGNEE: ${{ env.GITHUB_REPOSITORY_OWNER }}
-        INPUT_PROJECT_ID: ${{ env.DEPLOYMENT }}
-        INPUT_FILENAME: library.json
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: scripts/commitIssue.sh
+#on:
+#  workflow_call:
+#    inputs:
+#      RELEASE_REVISION:
+#        required: true
+#        type: string
+#      ECR_REPOSITORY:
+#        required: true
+#        type: string
+#      DEPLOYMENT:
+#        required: false
+#        type: string
+#
+#name: Scan docker images for vulnerabilities
+#
+#env:
+#  DOCKER_IMAGE: 801814269951.dkr.ecr.us-east-1.amazonaws.com/${{ inputs.ECR_REPOSITORY }}:${{ inputs.RELEASE_REVISION }}
+#  DEPLOYMENT: ${{ vars.DEPLOYMENT }}
+#
+#jobs:
+#  reusable_workflow_job:
+#    runs-on: ubuntu-latest
+#    steps:
+#    - name: Checkout
+#      uses: actions/checkout@v4
+#      with:
+#        repository: rackoot/common-workflows
+#        ref: main
+#
+#    - name: Configure AWS credentials
+#      uses: aws-actions/configure-aws-credentials@v2
+#      with:
+#        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#        aws-region: ${{ vars.AWS_REGION }}
+#
+#    - name: Login to Amazon ECR
+#      id: login-ecr
+#      uses: aws-actions/amazon-ecr-login@v1
+#
+#    - name: Pull docker image
+#      run: docker pull ${{ env.DOCKER_IMAGE }}
+#
+#    - name: Set deployment name # if is different from secrets.DEPLOYMENT
+#      if: ${{ inputs.DEPLOYMENT }}
+#      run: echo "DEPLOYMENT=${{ inputs.DEPLOYMENT }}" >> $GITHUB_ENV
+#
+#    - name: Run Trivy vulnerability scanner
+#      uses: aquasecurity/trivy-action@master
+#      with:
+#        image-ref: ${{ env.DOCKER_IMAGE }}
+#        format: 'table'
+#        exit-code: '0'
+#        ignore-unfixed: true
+#        vuln-type: 'os,library'
+#        severity: 'CRITICAL,HIGH'
+#        output: ${{ env.DEPLOYMENT }}.log
+#        timeout: 10m
+#
+#    # Set slack_post to true if vulnerabilities found
+#    - name: Set slack post
+#      run: |
+#        grep "^Total:" ${{ env.DEPLOYMENT }}.log > totals.log
+#        while read vuln
+#        do
+#          if [[ $(echo $vuln |grep -e "Total: [^0]") != "" ]]
+#          then
+#            vulnerabilities=1
+#          fi
+#        done < totals.log
+#        if [[ $vulnerabilities = 1 ]]
+#        then
+#          echo "SLACK_MESSAGE=:disappointed: Vulnerabilities found in ${{ env.DEPLOYMENT }}" >> $GITHUB_ENV
+#        else
+#          echo "SLACK_MESSAGE=:blush: Congratulations! No vulnerabilities found in ${{ env.DEPLOYMENT }}" >> $GITHUB_ENV
+#        fi
+#
+#    - name: Upload to slack
+#      uses: MeilCli/slack-upload-file@v4
+#      with:
+#        slack_token: ${{ secrets.SLACK_BOT_TOKEN }}
+#        channel_id: ${{ vars.SLACK_CHANNEL }}
+#        file_path: '${{ env.DEPLOYMENT }}.log'
+#        file_type: 'text'
+#        initial_comment: '${{ env.SLACK_MESSAGE }}'
+#        title: "Vulnerabilities report for ${{ env.DEPLOYMENT }}"
+#
+#    - name: Run Trivy os vulnerability scanner
+#      uses: aquasecurity/trivy-action@master
+#      with:
+#        image-ref: ${{ env.DOCKER_IMAGE }}
+#        format: 'json'
+#        exit-code: '0'
+#        ignore-unfixed: true
+#        vuln-type: 'os'
+#        severity: 'CRITICAL,HIGH'
+#        output: os.json
+#        timeout: 10m
+#
+#    - name: Create issues for os vulnerabilities
+#      env:
+#        INPUT_LABEL: vulnerability
+#        INPUT_ASSIGNEE: MartinQIremedy
+#        INPUT_PROJECT_ID: ${{ env.DEPLOYMENT }}
+#        INPUT_FILENAME: os.json
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      run: scripts/commitIssue.sh
+#
+#    - name: Run Trivy libs vulnerability scanner
+#      uses: aquasecurity/trivy-action@master
+#      with:
+#        image-ref: ${{ env.DOCKER_IMAGE }}
+#        format: 'json'
+#        exit-code: '0'
+#        ignore-unfixed: true
+#        vuln-type: 'library'
+#        severity: 'CRITICAL,HIGH'
+#        output: library.json
+#        #security-checks: vuln-type
+#
+#    - name: Create issues for libs vulnerabilities
+#      env:
+#        INPUT_LABEL: vulnerability
+#        INPUT_ASSIGNEE: ${{ env.GITHUB_REPOSITORY_OWNER }}
+#        INPUT_PROJECT_ID: ${{ env.DEPLOYMENT }}
+#        INPUT_FILENAME: library.json
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      run: scripts/commitIssue.sh
