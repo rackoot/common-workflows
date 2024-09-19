@@ -60,8 +60,7 @@ jobs:
         echo "KUBE_NAMESPACE=${{ vars.KUBE_NAMESPACE_DEV }}" >> $GITHUB_ENV
         echo "KUBE_CLUSTER=${{ vars.KUBE_CLUSTER_DEV }}" >> $GITHUB_ENV
     - name: If account Racky (533267199925)
-      if: ${{ inputs.AWS_ACCOUNT == '533267199925' }}
-      run: |
+      if: ${{ inputs.ENVIRONMENT == 'dev' && inputs.AWS_ACCOUNT == '533267199925' }}      run: |
         echo "KUBE_CONFIG=${{ secrets.KUBE_CONFIG_DEV_NEW }}" >> $GITHUB_ENV
         echo "VALUES=environment=${{ inputs.ENVIRONMENT }},app_version=${{ inputs.RELEASE_REVISION }},secretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY_NEW }},accessKeyID=${{ secrets.AWS_ACCESS_KEY_ID_NEW }},aws_account_id=${{ inputs.AWS_ACCOUNT }}" >> $GITHUB_ENV
         echo "HELM_CHART_REPO=s3://racky-helm-charts" >> $GITHUB_ENV  
@@ -78,7 +77,7 @@ jobs:
         echo "KUBE_NAMESPACE=${{ vars.KUBE_NAMESPACE_PROD }}" >> $GITHUB_ENV
         echo "KUBE_CLUSTER=${{ vars.KUBE_CLUSTER_PROD }}" >> $GITHUB_ENV
     - name: If account Racky (533267199925)
-      if: ${{ inputs.AWS_ACCOUNT == '533267199925' }}
+      if: ${{ inputs.ENVIRONMENT == 'prod' && inputs.AWS_ACCOUNT == '533267199925' }}
       run: |
         echo "KUBE_CONFIG=${{ secrets.KUBE_CONFIG_PROD_NEW }}" >> $GITHUB_ENV
         echo "HELM_CHART_REPO=s3://racky-helm-charts" >> $GITHUB_ENV
