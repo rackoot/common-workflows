@@ -48,6 +48,7 @@ env:
   VALUES: environment=${{ inputs.ENVIRONMENT }},app_version=${{ inputs.RELEASE_REVISION }},secretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY }},accessKeyID=${{ secrets.AWS_ACCESS_KEY_ID }},aws_account_id=${{ inputs.AWS_ACCOUNT }}
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  KUBE_NAMESPACE: ${{ inputs.ENVIRONMENT }}
 jobs:
   reusable_workflow_job:
     name: Deploy Chart
@@ -58,25 +59,22 @@ jobs:
       if: ${{ inputs.ENVIRONMENT == 'dev' }}
       run: |
         #echo "KUBE_CONFIG=${{ secrets.KUBE_CONFIG_DEV }}" >> $GITHUB_ENV
-        echo "KUBE_NAMESPACE=${{ vars.KUBE_NAMESPACE_DEV }}" >> $GITHUB_ENV
         echo "KUBE_CLUSTER=${{ vars.KUBE_CLUSTER_DEV }}" >> $GITHUB_ENV 
     - name: Define KUBE variables if test
       if: ${{ inputs.ENVIRONMENT == 'test' }}
       run: |
-        echo "KUBE_NAMESPACE=${{ vars.KUBE_NAMESPACE_TEST }}" >> $GITHUB_ENV
         echo "KUBE_CLUSTER=${{ vars.KUBE_CLUSTER_TEST }}" >> $GITHUB_ENV
     - name: Define KUBE variables if prod
       if: ${{ inputs.ENVIRONMENT == 'prod' }}
       run: |
-        echo "KUBE_NAMESPACE=${{ vars.KUBE_NAMESPACE_PROD }}" >> $GITHUB_ENV
         echo "KUBE_CLUSTER=${{ vars.KUBE_CLUSTER_PROD }}" >> $GITHUB_ENV
     - name: If account Racky (533267199925)
       if: ${{ inputs.AWS_ACCOUNT == '533267199925' }}
       run: |
-        echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID_NEW }}" >> $GITHUB_ENV
-        echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY_NEW }}" >> $GITHUB_ENV
+        echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID_533267199925 }}" >> $GITHUB_ENV
+        echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY_533267199925 }}" >> $GITHUB_ENV
         echo "HELM_CHART_REPO=s3://racky-helm-charts" >> $GITHUB_ENV
-        echo "VALUES=environment=${{ inputs.ENVIRONMENT }},app_version=${{ inputs.RELEASE_REVISION }},secretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY_NEW }},accessKeyID=${{ secrets.AWS_ACCESS_KEY_ID_NEW }},aws_account_id=${{ inputs.AWS_ACCOUNT }}" >> $GITHUB_ENV
+        echo "VALUES=environment=${{ inputs.ENVIRONMENT }},app_version=${{ inputs.RELEASE_REVISION }},secretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY_533267199925 }},accessKeyID=${{ secrets.AWS_ACCESS_KEY_ID_533267199925 }},aws_account_id=${{ inputs.AWS_ACCOUNT }}" >> $GITHUB_ENV
 
     - name: Set deployment name # if is different from secrets.DEPLOYMENT
       if: ${{ inputs.DEPLOYMENT }}
