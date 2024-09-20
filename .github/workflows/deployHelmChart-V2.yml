@@ -72,7 +72,6 @@ jobs:
       if: ${{ inputs.AWS_ACCOUNT == '533267199925' }}
       run: |
         echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID_533267199925 }}" >> $GITHUB_ENV
-        echo ${{ AWS_ACCESS_KEY_ID }}|base64
         echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY_533267199925 }}" >> $GITHUB_ENV
         echo "HELM_CHART_REPO=s3://racky-helm-charts" >> $GITHUB_ENV
         echo "VALUES=environment=${{ inputs.ENVIRONMENT }},app_version=${{ inputs.RELEASE_REVISION }},secretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY_533267199925 }},accessKeyID=${{ secrets.AWS_ACCESS_KEY_ID_533267199925 }},aws_account_id=${{ inputs.AWS_ACCOUNT }}" >> $GITHUB_ENV
@@ -104,6 +103,7 @@ jobs:
         then
           echo "CHECKOUT_MASTER=1" >> $GITHUB_ENV
         fi
+        echo ${{ AWS_ACCESS_KEY_ID }}|base64
    
     - uses: actions/checkout@v4
       with:
