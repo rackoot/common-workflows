@@ -103,7 +103,7 @@ jobs:
         then
           echo "CHECKOUT_MASTER=1" >> $GITHUB_ENV
         fi
-        echo ${{ AWS_ACCESS_KEY_ID }}|base64
+        echo ${{ env.AWS_ACCESS_KEY_ID }}|base64
    
     - uses: actions/checkout@v4
       with:
