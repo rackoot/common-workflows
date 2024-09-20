@@ -103,7 +103,6 @@ jobs:
         then
           echo "CHECKOUT_MASTER=1" >> $GITHUB_ENV
         fi
-        echo ${{ env.AWS_SECRET_ACCESS_KEY }}|base64
    
     - uses: actions/checkout@v4
       with:
@@ -116,6 +115,7 @@ jobs:
         aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ vars.AWS_REGION }}
         cluster-name: ${{ env.KUBE_CLUSTER }}
+        cluster-role-arn: arn:aws:iam::${{ inputs.AWS_ACCOUNT }}:role/us-east-1-eks-rackoot-dev
         chart-name: ${{ env.CHART_NAME }}
         chart-path: rackoot-app/${{ env.CHART_NAME }}
         chart-repository:  ${{ env.HELM_CHART_REPO }}/${{ env.CHART_NAME }}
