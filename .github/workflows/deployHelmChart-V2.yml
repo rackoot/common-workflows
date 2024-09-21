@@ -109,7 +109,7 @@ jobs:
         ref: ${{ github.event.pull_request.head.sha }}
 
     - name: Deploy chart
-      uses: MartinQuesada/eks-helm-deploy-action@v3.2
+      uses: MartinQuesada/eks-helm-deploy-action@v3.2.3
       with:
         aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
