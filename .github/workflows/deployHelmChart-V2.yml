@@ -74,6 +74,7 @@ jobs:
         echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID_533267199925 }}" >> $GITHUB_ENV
         echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY_533267199925 }}" >> $GITHUB_ENV
         echo "HELM_CHART_REPO=s3://racky-helm-charts" >> $GITHUB_ENV
+        echo "CLUSTER_ROLE_ARN=arn:aws:iam::${{ inputs.AWS_ACCOUNT }}:role/Admin-Role" >> $GITHUB_ENV
         echo "VALUES=environment=${{ inputs.ENVIRONMENT }},app_version=${{ inputs.RELEASE_REVISION }},secretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY_533267199925 }},accessKeyID=${{ secrets.AWS_ACCESS_KEY_ID_533267199925 }},aws_account_id=${{ inputs.AWS_ACCOUNT }}" >> $GITHUB_ENV
 
     - name: Set deployment name # if is different from secrets.DEPLOYMENT
@@ -115,7 +116,7 @@ jobs:
         aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ vars.AWS_REGION }}
         cluster-name: ${{ env.KUBE_CLUSTER }}
-        cluster-role-arn: arn:aws:iam::${{ inputs.AWS_ACCOUNT }}:role/Admin-Role
+        cluster-role-arn: ${{ env.CLUSTER_ROLE_ARN }}
         chart-name: ${{ env.CHART_NAME }}
         chart-path: rackoot-app/${{ env.CHART_NAME }}
         chart-repository:  ${{ env.HELM_CHART_REPO }}/${{ env.CHART_NAME }}
