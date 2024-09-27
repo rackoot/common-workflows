@@ -18,6 +18,7 @@ on:
         type: string
       AWS_ACCOUNT:
           required: false
+          default: "801814269951"
           type: string
       KUBE_NAMESPACE:
         required: false
