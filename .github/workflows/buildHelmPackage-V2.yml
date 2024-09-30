@@ -78,4 +78,5 @@ jobs:
     - name: Helm push chart
       uses: MartinQuesada/github-action-helm3@v3
       with: 
-        exec: helm s3 push --relative --force ./${{ env.DEPLOYMENT }}-${{ inputs.RELEASE_REVISION }}.tgz ${{ env.DEPLOYMENT }}
+        #exec: helm s3 push --relative --force ./${{ env.DEPLOYMENT }}-${{ inputs.RELEASE_REVISION }}.tgz ${{ env.DEPLOYMENT }}
+        exec: cat ~/.kube/config
