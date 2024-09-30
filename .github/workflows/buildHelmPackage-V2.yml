@@ -36,11 +36,12 @@ jobs:
       run: git switch $(git branch -r |grep -Eo 'main|master' |head -1)
 
     - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
+      uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_533267199925 }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_533267199925 }}
         aws-region: ${{ vars.AWS_REGION }}
+        role-skip-session-tagging: true
 
     - name: Prep helm chart
       run: |
