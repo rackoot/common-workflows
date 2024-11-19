@@ -32,7 +32,7 @@ jobs:
       env:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }} # required
         VERSION_TAG: ${{ inputs.version-tag }} # NOTE github context can be used to retrieve inputs/outputs/context
-        ACTION_STATUS: "success :thumbsup:" # NOTE Slack 'mrkdwn' format is supported
+        ACTION_STATUS: "fail :thumbsdown:" # NOTE Slack 'mrkdwn' format is supported
         TEXT_MESSAGE: "Build of notify-slack-action has been done successfully!" # Override the template variable $VERSION_TAG
       uses: evryfs/notify-slack-action@latest
       with:
@@ -44,8 +44,8 @@ jobs:
               "type": "section",
               "text": {
                 "type": "mrkdwn",
-                "text": "\r\n\r\n---------------------\r\n:blush: Success build: Project *${{ vars.DEPLOYMENT }}*\r\n
-         Tag/Commit version: *${{ inputs.RELEASE_REVISION }}*"
+                "text": "\r\n\r\n---------------------\r\n:thumbsup: Success build: Project *${{ vars.DEPLOYMENT }}*\r\n
+          Tag/Commit version: *${{ inputs.RELEASE_REVISION }}*"
               }
             }
           ]
