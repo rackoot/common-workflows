@@ -58,7 +58,7 @@ jobs:
     - name: Install s3 helm plugin
       uses: WyriHaximus/github-action-helm3@v2
       with: 
-        exec: helm plugin install https://github.com/hypnoglow/helm-s3.git
+        exec: helm plugin install https://github.com/hypnoglow/helm-s3.git --version 0.16.2
 
     - name: Helm package chart
       uses: WyriHaximus/github-action-helm3@v2
