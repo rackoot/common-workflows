@@ -38,6 +38,8 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v1
 
     - name: Pull docker image
+      env:
+        DOCKER_IMAGE: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.RELEASE_REVISION }}
       run: docker pull ${{ env.DOCKER_IMAGE }}
 
     - name: Set deployment name # if is different from secrets.DEPLOYMENT
