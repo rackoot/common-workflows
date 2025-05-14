@@ -107,13 +107,22 @@ jobs:
         initial_comment: '${{ env.SLACK_MESSAGE }} (Library)'
         title: "Library vulnerabilities for ${{ env.DEPLOYMENT }}"
 
-    - name: Create GitHub issue for vulnerabilities
+    - name: Create GitHub issue for OS vulnerabilities
       if: env.HAS_VULNS == 'true'
       env:
         INPUT_LABEL: vulnerability
         INPUT_ASSIGNEE: ${{ env.GITHUB_REPOSITORY_OWNER }}
         INPUT_PROJECT_ID: ${{ env.DEPLOYMENT }}
-        INPUT_FILENAME_OS: os.json
-        INPUT_FILENAME_LIBS: library.json
+        INPUT_FILENAME: os.json
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: scripts/commitIssue.sh
+
+    - name: Create GitHub issue for Library vulnerabilities
+      if: env.HAS_VULNS == 'true'
+      env:
+        INPUT_LABEL: vulnerability
+        INPUT_ASSIGNEE: ${{ env.GITHUB_REPOSITORY_OWNER }}
+        INPUT_PROJECT_ID: ${{ env.DEPLOYMENT }}
+        INPUT_FILENAME: library.json
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: scripts/commitIssue.sh
