@@ -11,6 +11,10 @@ on:
         required: false
         type: string
 
+
+permissions:
+  issues: write
+
 name: Scan docker images for vulnerabilities
 
 env:
