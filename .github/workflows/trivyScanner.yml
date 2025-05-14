@@ -46,73 +46,64 @@ jobs:
       if: ${{ inputs.DEPLOYMENT }}
       run: echo "DEPLOYMENT=${{ inputs.DEPLOYMENT }}" >> $GITHUB_ENV
 
-    - name: Run Trivy vulnerability scanner
-      env:
-        DOCKER_IMAGE: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.RELEASE_REVISION }}
-      uses: aquasecurity/trivy-action@0.30.0
+    - name: Install Trivy v0.62.1
+      uses: aquasecurity/setup-trivy@v0.2.3
       with:
-        image-ref: ${{ env.DOCKER_IMAGE }}
-        format: 'json'
-        exit-code: '0'
-        ignore-unfixed: true
-        vuln-type: 'os,library'
-        severity: 'CRITICAL,HIGH'
-        output: ${{ inputs.DEPLOYMENT }}.json
-        timeout: 10m
+        version: v0.62.1
 
-    - name: Check vulnerabilities from Trivy report
+    - name: Scan OS vulnerabilities
       run: |
-        FILE="${{ inputs.DEPLOYMENT }}.json"
-        jq -r '.Results[]?.Vulnerabilities? // [] | length' "$FILE" | awk '{sum += $1} END { if (sum > 0) { printf("SLACK_MESSAGE=:disappointed: Vulnerabilities found in %s\n", "${{ inputs.DEPLOYMENT }}") } else { printf("SLACK_MESSAGE=:blush: Congratulations! No vulnerabilities found in %s\n", "${{ inputs.DEPLOYMENT }}") } }' >> $GITHUB_ENV
+        trivy image \
+          --format json \
+          --exit-code 0 \
+          --ignore-unfixed \
+          --vuln-type os \
+          --severity CRITICAL,HIGH \
+          --timeout 10m \
+          --output os.json \
+          ${{ env.DOCKER_IMAGE }}
 
-#    - name: Upload to slack
-#      uses: MeilCli/slack-upload-file@v4
-#      with:
-#        slack_token: ${{ secrets.SLACK_BOT_TOKEN }}
-#        channel_id: ${{ vars.SLACK_CHANNEL }}
-#        file_path: '${{ env.DEPLOYMENT }}.log'
-#        file_type: 'text'
-#        initial_comment: '${{ env.SLACK_MESSAGE }}'
-#        title: "Vulnerabilities report for ${{ env.DEPLOYMENT }}"#
+    - name: Scan library vulnerabilities
+      run: |
+        trivy image \
+          --format json \
+          --exit-code 0 \
+          --ignore-unfixed \
+          --vuln-type library \
+          --severity CRITICAL,HIGH \
+          --timeout 10m \
+          --output library.json \
+          ${{ env.DOCKER_IMAGE }}
 
-#    - name: Run Trivy os vulnerability scanner
-#      uses: aquasecurity/trivy-action@master
-#      with:
-#        image-ref: ${{ env.DOCKER_IMAGE }}
-#        format: 'json'
-#        exit-code: '0'
-#        ignore-unfixed: true
-#        vuln-type: 'os'
-#        severity: 'CRITICAL,HIGH'
-#        output: os.json
-#        timeout: 10m#
+    - name: Check vulnerabilities from Trivy reports
+      run: |
+        total=$(jq '.Results[].Vulnerabilities | length' os.json library.json 2>/dev/null | awk '{s+=$1} END {print s}')
+        if [[ $total -gt 0 ]]; then
+          echo "SLACK_MESSAGE=:disappointed: Found $total vulnerabilities in ${{ env.DEPLOYMENT }}" >> $GITHUB_ENV
+          echo "HAS_VULNS=true" >> $GITHUB_ENV
+        else
+          echo "SLACK_MESSAGE=:blush: No vulnerabilities found in ${{ env.DEPLOYMENT }}" >> $GITHUB_ENV
+          echo "HAS_VULNS=false" >> $GITHUB_ENV
+        fi
 
-#    - name: Create issues for os vulnerabilities
-#      env:
-#        INPUT_LABEL: vulnerability
-#        INPUT_ASSIGNEE: MartinQIremedy
-#        INPUT_PROJECT_ID: ${{ env.DEPLOYMENT }}
-#        INPUT_FILENAME: os.json
-#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#      run: scripts/commitIssue.sh
+    - name: Upload OS vulnerabilities report to Slack
+      if: env.HAS_VULNS == 'true'
+      uses: MeilCli/slack-upload-file@v4
+      with:
+        slack_token: ${{ secrets.SLACK_BOT_TOKEN }}
+        channel_id: ${{ vars.SLACK_CHANNEL }}
+        file_path: 'os.json'
+        file_type: 'json'
+        initial_comment: '${{ env.SLACK_MESSAGE }} (OS vulnerabilities)'
+        title: "OS vulnerabilities for ${{ env.DEPLOYMENT }}"
 
-#    - name: Run Trivy libs vulnerability scanner
-#      uses: aquasecurity/trivy-action@master
-#      with:
-#        image-ref: ${{ env.DOCKER_IMAGE }}
-#        format: 'json'
-#        exit-code: '0'
-#        ignore-unfixed: true
-#        vuln-type: 'library'
-#        severity: 'CRITICAL,HIGH'
-#        output: library.json
-#        #security-checks: vuln-type#
-
-#    - name: Create issues for libs vulnerabilities
-#      env:
-#        INPUT_LABEL: vulnerability
-#        INPUT_ASSIGNEE: ${{ env.GITHUB_REPOSITORY_OWNER }}
-#        INPUT_PROJECT_ID: ${{ env.DEPLOYMENT }}
-#        INPUT_FILENAME: library.json
-#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#      run: scripts/commitIssue.sh
+    - name: Upload Library vulnerabilities report to Slack
+      if: env.HAS_VULNS == 'true'
+      uses: MeilCli/slack-upload-file@v4
+      with:
+        slack_token: ${{ secrets.SLACK_BOT_TOKEN }}
+        channel_id: ${{ vars.SLACK_CHANNEL }}
+        file_path: 'library.json'
+        file_type: 'json'
+        initial_comment: '${{ env.SLACK_MESSAGE }} (Library vulnerabilities)'
+        title: "Library vulnerabilities for ${{ env.DEPLOYMENT }}"
