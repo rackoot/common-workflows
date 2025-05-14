@@ -46,34 +46,33 @@ jobs:
       if: ${{ inputs.DEPLOYMENT }}
       run: echo "DEPLOYMENT=${{ inputs.DEPLOYMENT }}" >> $GITHUB_ENV
 
-    - name: Install Trivy v0.62.1
-      uses: aquasecurity/setup-trivy@v0.2.3
+    - name: Run Trivy OS vulnerability scanner
+      env:
+        DOCKER_IMAGE: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.RELEASE_REVISION }}
+      uses: aquasecurity/trivy-action@0.30.0
       with:
-        version: v0.62.1
+        image-ref: ${{ env.DOCKER_IMAGE }}
+        format: 'json'
+        exit-code: '0'
+        ignore-unfixed: true
+        vuln-type: 'os'
+        severity: 'CRITICAL,HIGH'
+        output: os.json
+        timeout: 10m
 
-    - name: Scan OS vulnerabilities
-      run: |
-        trivy image \
-          --format json \
-          --exit-code 0 \
-          --ignore-unfixed \
-          --vuln-type os \
-          --severity CRITICAL,HIGH \
-          --timeout 10m \
-          --output os.json \
-          ${{ env.DOCKER_IMAGE }}
-
-    - name: Scan library vulnerabilities
-      run: |
-        trivy image \
-          --format json \
-          --exit-code 0 \
-          --ignore-unfixed \
-          --vuln-type library \
-          --severity CRITICAL,HIGH \
-          --timeout 10m \
-          --output library.json \
-          ${{ env.DOCKER_IMAGE }}
+    - name: Run Trivy Library vulnerability scanner
+      env:
+        DOCKER_IMAGE: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.RELEASE_REVISION }}
+      uses: aquasecurity/trivy-action@0.30.0
+      with:
+        image-ref: ${{ env.DOCKER_IMAGE }}
+        format: 'json'
+        exit-code: '0'
+        ignore-unfixed: true
+        vuln-type: 'library'
+        severity: 'CRITICAL,HIGH'
+        output: library.json
+        timeout: 10m
 
     - name: Check vulnerabilities from Trivy reports
       run: |
@@ -86,7 +85,7 @@ jobs:
           echo "HAS_VULNS=false" >> $GITHUB_ENV
         fi
 
-    - name: Upload OS vulnerabilities report to Slack
+    - name: Upload OS report to Slack
       if: env.HAS_VULNS == 'true'
       uses: MeilCli/slack-upload-file@v4
       with:
@@ -94,10 +93,10 @@ jobs:
         channel_id: ${{ vars.SLACK_CHANNEL }}
         file_path: 'os.json'
         file_type: 'json'
-        initial_comment: '${{ env.SLACK_MESSAGE }} (OS vulnerabilities)'
+        initial_comment: '${{ env.SLACK_MESSAGE }} (OS)'
         title: "OS vulnerabilities for ${{ env.DEPLOYMENT }}"
 
-    - name: Upload Library vulnerabilities report to Slack
+    - name: Upload Library report to Slack
       if: env.HAS_VULNS == 'true'
       uses: MeilCli/slack-upload-file@v4
       with:
@@ -105,5 +104,5 @@ jobs:
         channel_id: ${{ vars.SLACK_CHANNEL }}
         file_path: 'library.json'
         file_type: 'json'
-        initial_comment: '${{ env.SLACK_MESSAGE }} (Library vulnerabilities)'
+        initial_comment: '${{ env.SLACK_MESSAGE }} (Library)'
         title: "Library vulnerabilities for ${{ env.DEPLOYMENT }}"
