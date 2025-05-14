@@ -14,8 +14,7 @@ on:
 name: Scan docker images for vulnerabilities
 
 env:
-  DOCKER_IMAGE: 801814269951.dkr.ecr.us-east-1.amazonaws.com/${{ inputs.ECR_REPOSITORY }}:${{ inputs.RELEASE_REVISION }}
-  DEPLOYMENT: ${{ vars.DEPLOYMENT }}
+  DEPLOYMENT: ${{ inputs.DEPLOYMENT }}
 
 jobs:
   reusable_workflow_job:
@@ -46,34 +45,23 @@ jobs:
       run: echo "DEPLOYMENT=${{ inputs.DEPLOYMENT }}" >> $GITHUB_ENV
 
     - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
+      env:
+        DOCKER_IMAGE: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.RELEASE_REVISION }}
+      uses: aquasecurity/trivy-action@v0.30.0
       with:
         image-ref: ${{ env.DOCKER_IMAGE }}
-        format: 'table'
+        format: 'json'
         exit-code: '0'
         ignore-unfixed: true
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH'
-        output: ${{ env.DEPLOYMENT }}.log
+        output: ${{ inputs.DEPLOYMENT }}.json
         timeout: 10m
 
-    # Set slack_post to true if vulnerabilities found
-    - name: Set slack post
+    - name: Check vulnerabilities from Trivy report
       run: |
-        grep "^Total:" ${{ env.DEPLOYMENT }}.log > totals.log
-        while read vuln
-        do
-          if [[ $(echo $vuln |grep -e "Total: [^0]") != "" ]]
-          then
-            vulnerabilities=1
-          fi
-        done < totals.log
-        if [[ $vulnerabilities = 1 ]]
-        then
-          echo "SLACK_MESSAGE=:disappointed: Vulnerabilities found in ${{ env.DEPLOYMENT }}" >> $GITHUB_ENV
-        else
-          echo "SLACK_MESSAGE=:blush: Congratulations! No vulnerabilities found in ${{ env.DEPLOYMENT }}" >> $GITHUB_ENV
-        fi
+        FILE="${{ inputs.DEPLOYMENT }}.json"
+        jq -r '.Results[]?.Vulnerabilities? // [] | length' "$FILE" | awk '{sum += $1} END { if (sum > 0) { printf("SLACK_MESSAGE=:disappointed: Vulnerabilities found in %s\n", "${{ inputs.DEPLOYMENT }}") } else { printf("SLACK_MESSAGE=:blush: Congratulations! No vulnerabilities found in %s\n", "${{ inputs.DEPLOYMENT }}") } }' >> $GITHUB_ENV
 
 #    - name: Upload to slack
 #      uses: MeilCli/slack-upload-file@v4
