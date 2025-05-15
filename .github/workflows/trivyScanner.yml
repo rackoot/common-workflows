@@ -105,7 +105,6 @@ jobs:
         fi
 
     - name: Upload OS report to Slack
-      if: env.HAS_VULNS == true
       uses: MeilCli/slack-upload-file@v4
       with:
         slack_token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -116,7 +115,6 @@ jobs:
         title: "OS vulnerabilities for ${{ env.DEPLOYMENT }}"
 
     - name: Upload Library report to Slack
-      if: env.HAS_VULNS == true
       uses: MeilCli/slack-upload-file@v4
       with:
         slack_token: ${{ secrets.SLACK_BOT_TOKEN }}
