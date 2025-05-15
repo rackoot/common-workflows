@@ -53,33 +53,59 @@ jobs:
         echo "OS_REPORT=${{ env.DEPLOYMENT }}-os-$SCAN_DATE.txt" >> $GITHUB_ENV
         echo "LIBRARY_REPORT=${{ env.DEPLOYMENT }}-lib-$SCAN_DATE.txt" >> $GITHUB_ENV
 
-    - name: Run Trivy OS vulnerability scanner
+    - name: Run Trivy Library OS scanner (conditional policy)
+      run: |
+        if [ -f .trivy/trivy-ignore.yaml ]; then
+          echo "Using .trivy/trivy-ignore.yaml"
+          trivy image \
+            --ignore-unfixed \
+            --severity CRITICAL,HIGH \
+            --vuln-type library \
+            --format json \
+            --timeout 10m \
+            --ignore-policy .trivy/trivy-ignore.yaml \
+            --output "$OS_REPORT" \
+            "$DOCKER_IMAGE"
+        else
+          echo "Running without ignore-policy"
+          trivy image \
+            --ignore-unfixed \
+            --severity CRITICAL,HIGH \
+            --vuln-type library \
+            --format json \
+            --timeout 10m \
+            "$DOCKER_IMAGE"
+        fi
       env:
         DOCKER_IMAGE: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.RELEASE_REVISION }}
-      uses: aquasecurity/trivy-action@0.30.0
-      with:
-        image-ref: ${{ env.DOCKER_IMAGE }}
-        format: "json"
-        exit-code: "0"
-        ignore-unfixed: true
-        vuln-type: "os"
-        severity: "CRITICAL,HIGH"
-        output: "os.json"
-        timeout: 10m
 
-    - name: Run Trivy Library vulnerability scanner
+
+    - name: Run Trivy Library vulnerability scanner (conditional policy)
+      run: |
+        if [ -f .trivy/trivy-ignore.yaml ]; then
+          echo "Using .trivy/trivy-ignore.yaml"
+          trivy image \
+            --ignore-unfixed \
+            --severity CRITICAL,HIGH \
+            --vuln-type library \
+            --format json \
+            --timeout 10m \
+            --ignore-policy .trivy/trivy-ignore.yaml \
+            --output "$LIBRARY_REPORT" \
+            "$DOCKER_IMAGE"
+        else
+          echo "Running without ignore-policy"
+          trivy image \
+            --ignore-unfixed \
+            --severity CRITICAL,HIGH \
+            --vuln-type library \
+            --format json \
+            --timeout 10m \
+            --output "$LIBRARY_REPORT" \
+            "$DOCKER_IMAGE"
+        fi
       env:
         DOCKER_IMAGE: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.RELEASE_REVISION }}
-      uses: aquasecurity/trivy-action@0.30.0
-      with:
-        image-ref: ${{ env.DOCKER_IMAGE }}
-        format: "json"
-        exit-code: "0"
-        ignore-unfixed: true
-        vuln-type: "library"
-        severity: "CRITICAL,HIGH"
-        output: lib.json
-        timeout: 10m
 
     - name: Check vulnerabilities from Trivy reports
       run: |
