@@ -95,13 +95,13 @@ jobs:
     - name: Create OS vulnerability summary
       run: |
         if ! jq -r '.Results[] | select(.Vulnerabilities != null) | .Vulnerabilities[] | "\(.VulnerabilityID) \(.PkgName) \(.InstalledVersion) -> \(.FixedVersion // "no fix") [\(.Severity)]"' os.json > "$OS_REPORT"; then
-          echo "CONGRATS: No vulnerabilities" > "$OS_REPORT"
+          echo "CONGRATS: No vulnerabilities found in $DEPLOYMENT on $SCAN_DATE." > "$OS_REPORT"
         fi
 
     - name: Create Library vulnerability summary
       run: |
         if ! jq -r '.Results[] | select(.Vulnerabilities != null) | .Vulnerabilities[] | "\(.VulnerabilityID) \(.PkgName) \(.InstalledVersion) -> \(.FixedVersion // "no fix") [\(.Severity)]"' lib.json > "$LIBRARY_REPORT"; then
-          echo "CONGRATS: No vulnerabilities" > "$LIBRARY_REPORT"
+          echo "CONGRATS: No vulnerabilities found in $DEPLOYMENT on $SCAN_DATE." > "$LIBRARY_REPORT"
         fi
 
     - name: Check if OS report has content
@@ -113,10 +113,10 @@ jobs:
           echo "has_os_report=false" >> $GITHUB_OUTPUT
         fi
 
-    - name: Check if LIB report has content
+    - name: Check if LIBRARY report has content
       id: check_lib
       run: |
-        if [ -s "$LIB_REPORT" ]; then
+        if [ -s "$LIBRARY_REPORT" ]; then
           echo "has_lib_report=true" >> $GITHUB_OUTPUT
         else
           echo "has_lib_report=false" >> $GITHUB_OUTPUT
