@@ -50,8 +50,8 @@ jobs:
       run: |
         SCAN_DATE=$(date +%Y%m%d)
         echo "SCAN_DATE=$SCAN_DATE" >> $GITHUB_ENV
-        echo "OS_REPORT=\"${{ env.DEPLOYMENT }}-os-$SCAN_DATE.txt\"" >> $GITHUB_ENV
-        echo "LIBRARY_REPORT=\"${{ env.DEPLOYMENT }}-lib-$SCAN_DATE.txt\"" >> $GITHUB_ENV
+        echo "OS_REPORT=${{ env.DEPLOYMENT }}-os-$SCAN_DATE.txt" >> $GITHUB_ENV
+        echo "LIBRARY_REPORT=${{ env.DEPLOYMENT }}-lib-$SCAN_DATE.txt" >> $GITHUB_ENV
 
     - name: Run Trivy OS vulnerability scanner
       env:
