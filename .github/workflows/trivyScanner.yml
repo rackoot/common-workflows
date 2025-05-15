@@ -94,11 +94,15 @@ jobs:
 
     - name: Create OS vulnerability summary
       run: |
-        jq -r '.Results[].Vulnerabilities[] | "\(.VulnerabilityID) \(.PkgName) \(.InstalledVersion) → \(.FixedVersion // \"no fix\") [\(.Severity)]"' "os.json" || echo "CONGRATS: No vulnerabilities"  > ${{ env.OS_REPORT }}
-          
+        if ! jq -r '.Results[].Vulnerabilities[] | "\(.VulnerabilityID) \(.PkgName) \(.InstalledVersion) -> \(.FixedVersion // \"no  fix\") [\(.Severity)]"' "os.json" > "${{ env.OS_REPORT }}"; then
+          echo "CONGRATS: No vulnerabilities" > "${{ env.OS_REPORT }}"
+        fi
+
     - name: Create Library vulnerability summary
       run: |
-        jq -r '.Results[].Vulnerabilities[] | "\(.VulnerabilityID) \(.PkgName) \(.InstalledVersion) → \(.FixedVersion // \"no fix\") [\(.Severity)]"' "lib.json" || echo "CONGRATS: No vulnerabilities" > ${{ env.LIBRARY_REPORT }}
+        if ! jq -r '.Results[].Vulnerabilities[] | "\(.VulnerabilityID) \(.PkgName) \(.InstalledVersion) -> \(.FixedVersion // \"no  fix\") [\(.Severity)]"' "lib.json" > "${{ env.LIBRARY_REPORT }}"; then
+          echo "CONGRATS: No vulnerabilities" > "${{ env.LIBRARY_REPORT }}"
+        fi
 
     - name: Upload OS report to Slack
       if: env.HAS_VULNS == true
