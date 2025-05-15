@@ -94,13 +94,13 @@ jobs:
 
     - name: Create OS vulnerability summary
       run: |
-        if ! jq -r '.Results[].Vulnerabilities[] | "\(.VulnerabilityID) \(.PkgName) \(.InstalledVersion) -> \(.FixedVersion // "no fix") [\(.Severity)]"' os.json > "$OS_REPORT"; then
+        if ! jq -r '.Results[] | select(.Vulnerabilities != null) | .Vulnerabilities[] | "\(.VulnerabilityID) \(.PkgName) \(.InstalledVersion) -> \(.FixedVersion // "no fix") [\(.Severity)]"' os.json > "$OS_REPORT"; then
           echo "CONGRATS: No vulnerabilities" > "$OS_REPORT"
         fi
 
     - name: Create Library vulnerability summary
       run: |
-        if ! jq -r '.Results[].Vulnerabilities[] | "\(.VulnerabilityID) \(.PkgName) \(.InstalledVersion) -> \(.FixedVersion // "no fix") [\(.Severity)]"' lib.json > "$LIBRARY_REPORT"; then
+        if ! jq -r '.Results[] | select(.Vulnerabilities != null) | .Vulnerabilities[] | "\(.VulnerabilityID) \(.PkgName) \(.InstalledVersion) -> \(.FixedVersion // "no fix") [\(.Severity)]"' lib.json > "$LIBRARY_REPORT"; then
           echo "CONGRATS: No vulnerabilities" > "$LIBRARY_REPORT"
         fi
 
