@@ -59,6 +59,7 @@ jobs:
         severity: 'CRITICAL,HIGH'
         output: os.json
         timeout: 10m
+        scanners: "vuln"
 
     - name: Run Trivy Library vulnerability scanner
       env:
@@ -73,6 +74,7 @@ jobs:
         severity: 'CRITICAL,HIGH'
         output: library.json
         timeout: 10m
+        scanners: "vuln"
 
     - name: Check vulnerabilities from Trivy reports
       run: |
