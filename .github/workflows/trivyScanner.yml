@@ -104,8 +104,27 @@ jobs:
           echo "CONGRATS: No vulnerabilities" > "$LIBRARY_REPORT"
         fi
 
+    - name: Check if OS report has content
+      id: check_os
+      run: |
+        if [ -s "$OS_REPORT" ]; then
+          echo "has_os_report=true" >> $GITHUB_OUTPUT
+        else
+          echo "has_os_report=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Check if LIB report has content
+      id: check_lib
+      run: |
+        if [ -s "$LIB_REPORT" ]; then
+          echo "has_lib_report=true" >> $GITHUB_OUTPUT
+        else
+          echo "has_lib_report=false" >> $GITHUB_OUTPUT
+        fi
+
     - name: Upload OS report to Slack
       uses: MeilCli/slack-upload-file@v4
+      if: steps.check_os.outputs.has_os_report == 'true' && env.HAS_VULNS == 'true'
       with:
         slack_token: ${{ secrets.SLACK_BOT_TOKEN }}
         channel_id: ${{ vars.SLACK_CHANNEL }}
@@ -117,6 +136,7 @@ jobs:
     - name: Upload Library report to Slack
       uses: MeilCli/slack-upload-file@v4
       with:
+        if: steps.check_os.outputs.has_lib_report == 'true' && env.HAS_VULNS == 'true'
         slack_token: ${{ secrets.SLACK_BOT_TOKEN }}
         channel_id: ${{ vars.SLACK_CHANNEL }}
         file_path: ${{ env.LIBRARY_REPORT }}
