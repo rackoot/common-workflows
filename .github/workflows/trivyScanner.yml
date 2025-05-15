@@ -50,8 +50,8 @@ jobs:
       run: |
         SCAN_DATE=$(date +%Y%m%d)
         echo "SCAN_DATE=$SCAN_DATE" >> $GITHUB_ENV
-        echo "OS_REPORT=\"${{ env.DEPLOYMENT }}-os-$SCAN_DATE.json\"" >> $GITHUB_ENV
-        echo "LIBRARY_REPORT=\"${{ env.DEPLOYMENT }}-lib-$SCAN_DATE.json\"" >> $GITHUB_ENV
+        echo "OS_REPORT=\"${{ env.DEPLOYMENT }}-os-$SCAN_DATE.txt\"" >> $GITHUB_ENV
+        echo "LIBRARY_REPORT=\"${{ env.DEPLOYMENT }}-lib-$SCAN_DATE.txt\"" >> $GITHUB_ENV
 
     - name: Run Trivy OS vulnerability scanner
       env:
@@ -64,7 +64,7 @@ jobs:
         ignore-unfixed: true
         vuln-type: "os"
         severity: "CRITICAL,HIGH"
-        output: ${{ env.OS_REPORT }}
+        output: "os.json"
         timeout: 10m
 
     - name: Run Trivy Library vulnerability scanner
@@ -78,12 +78,12 @@ jobs:
         ignore-unfixed: true
         vuln-type: "library"
         severity: "CRITICAL,HIGH"
-        output: ${{ env.LIBRARY_REPORT }}
+        output: lib.json
         timeout: 10m
 
     - name: Check vulnerabilities from Trivy reports
       run: |
-        total=$(jq '.Results[].Vulnerabilities | length' "$OS_REPORT" "$LIBRARY_REPORT" 2>/dev/null | awk '{s+=$1} END {print s}')
+        total=$(jq '.Results[].Vulnerabilities | length' "os.json" "lib.json" 2>/dev/null | awk '{s+=$1} END {print s}')
         if [[ $total -gt 0 ]]; then
           echo "SLACK_MESSAGE=:disappointed: Found $total vulnerabilities in ${{ env.DEPLOYMENT }}" >> $GITHUB_ENV
           echo "HAS_VULNS=true" >> $GITHUB_ENV
@@ -92,6 +92,14 @@ jobs:
           echo "HAS_VULNS=false" >> $GITHUB_ENV
         fi
 
+    - name: Create OS vulnerability summary
+      run: |
+        jq -r '.Results[].Vulnerabilities[] | "\(.VulnerabilityID) \(.PkgName) \(.InstalledVersion) → \(.FixedVersion // \"no fix\") [\(.Severity)]"' "os.json" || echo "CONGRATS: No vulnerabilities"  > ${{ env.OS_REPORT }}
+          
+    - name: Create Library vulnerability summary
+      run: |
+        jq -r '.Results[].Vulnerabilities[] | "\(.VulnerabilityID) \(.PkgName) \(.InstalledVersion) → \(.FixedVersion // \"no fix\") [\(.Severity)]"' "lib.json" || echo "CONGRATS: No vulnerabilities" > ${{ env.LIBRARY_REPORT }}
+
     - name: Upload OS report to Slack
       if: env.HAS_VULNS == true
       uses: MeilCli/slack-upload-file@v4
@@ -99,7 +107,7 @@ jobs:
         slack_token: ${{ secrets.SLACK_BOT_TOKEN }}
         channel_id: ${{ vars.SLACK_CHANNEL }}
         file_path: ${{ env.OS_REPORT }}
-        file_type: "json"
+        file_type: "text"
         initial_comment: "${{ env.SLACK_MESSAGE }} (OS)"
         title: "OS vulnerabilities for ${{ env.DEPLOYMENT }}"
 
@@ -110,6 +118,6 @@ jobs:
         slack_token: ${{ secrets.SLACK_BOT_TOKEN }}
         channel_id: ${{ vars.SLACK_CHANNEL }}
         file_path: ${{ env.LIBRARY_REPORT }}
-        file_type: "json"
+        file_type: "text"
         initial_comment: "${{ env.SLACK_MESSAGE }} (Library)"
         title: "Library vulnerabilities for ${{ env.DEPLOYMENT }}"
