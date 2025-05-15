@@ -53,6 +53,11 @@ jobs:
         echo "OS_REPORT=${{ env.DEPLOYMENT }}-os-$SCAN_DATE.txt" >> $GITHUB_ENV
         echo "LIBRARY_REPORT=${{ env.DEPLOYMENT }}-lib-$SCAN_DATE.txt" >> $GITHUB_ENV
 
+    - name: Install Trivy v0.62.1
+      uses: aquasecurity/setup-trivy@v0.2.3
+      with:
+        version: v0.62.1
+
     - name: Run Trivy Library OS scanner (conditional policy)
       run: |
         if [ -f .trivy/trivy-ignore.yaml ]; then
