@@ -46,20 +46,26 @@ jobs:
       if: ${{ inputs.DEPLOYMENT }}
       run: echo "DEPLOYMENT=${{ inputs.DEPLOYMENT }}" >> $GITHUB_ENV
 
+    - name: Set report filenames
+      run: |
+        SCAN_DATE=$(date +%Y%m%d)
+        echo "SCAN_DATE=$SCAN_DATE" >> $GITHUB_ENV
+        echo "OS_REPORT=\"${{ env.DEPLOYMENT }}-os-$SCAN_DATE.json\"" >> $GITHUB_ENV
+        echo "LIBRARY_REPORT=\"${{ env.DEPLOYMENT }}-lib-$SCAN_DATE.json\"" >> $GITHUB_ENV
+
     - name: Run Trivy OS vulnerability scanner
       env:
         DOCKER_IMAGE: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.RELEASE_REVISION }}
       uses: aquasecurity/trivy-action@0.30.0
       with:
         image-ref: ${{ env.DOCKER_IMAGE }}
-        format: 'json'
-        exit-code: '0'
+        format: "json"
+        exit-code: "0"
         ignore-unfixed: true
-        vuln-type: 'os'
-        severity: 'CRITICAL,HIGH'
-        output: os.json
+        vuln-type: "os"
+        severity: "CRITICAL,HIGH"
+        output: ${{ env.OS_REPORT }}
         timeout: 10m
-        scanners: "vuln"
 
     - name: Run Trivy Library vulnerability scanner
       env:
@@ -67,18 +73,17 @@ jobs:
       uses: aquasecurity/trivy-action@0.30.0
       with:
         image-ref: ${{ env.DOCKER_IMAGE }}
-        format: 'json'
-        exit-code: '0'
+        format: "json"
+        exit-code: "0"
         ignore-unfixed: true
-        vuln-type: 'library'
-        severity: 'CRITICAL,HIGH'
-        output: library.json
+        vuln-type: "library"
+        severity: "CRITICAL,HIGH"
+        output: ${{ env.LIBRARY_REPORT }}
         timeout: 10m
-        scanners: "vuln"
 
     - name: Check vulnerabilities from Trivy reports
       run: |
-        total=$(jq '.Results[].Vulnerabilities | length' os.json library.json 2>/dev/null | awk '{s+=$1} END {print s}')
+        total=$(jq '.Results[].Vulnerabilities | length' "$OS_REPORT" "$LIBRARY_REPORT" 2>/dev/null | awk '{s+=$1} END {print s}')
         if [[ $total -gt 0 ]]; then
           echo "SLACK_MESSAGE=:disappointed: Found $total vulnerabilities in ${{ env.DEPLOYMENT }}" >> $GITHUB_ENV
           echo "HAS_VULNS=true" >> $GITHUB_ENV
@@ -88,43 +93,23 @@ jobs:
         fi
 
     - name: Upload OS report to Slack
-      if: env.HAS_VULNS == 'true'
+      if: env.HAS_VULNS == "true"
       uses: MeilCli/slack-upload-file@v4
       with:
         slack_token: ${{ secrets.SLACK_BOT_TOKEN }}
         channel_id: ${{ vars.SLACK_CHANNEL }}
-        file_path: 'os.json'
-        file_type: 'json'
-        initial_comment: '${{ env.SLACK_MESSAGE }} (OS)'
+        file_path: ${{ env.OS_REPORT }}
+        file_type: "json"
+        initial_comment: "${{ env.SLACK_MESSAGE }} (OS)"
         title: "OS vulnerabilities for ${{ env.DEPLOYMENT }}"
 
     - name: Upload Library report to Slack
-      if: env.HAS_VULNS == 'true'
+      if: env.HAS_VULNS == "true"
       uses: MeilCli/slack-upload-file@v4
       with:
         slack_token: ${{ secrets.SLACK_BOT_TOKEN }}
         channel_id: ${{ vars.SLACK_CHANNEL }}
-        file_path: 'library.json'
-        file_type: 'json'
-        initial_comment: '${{ env.SLACK_MESSAGE }} (Library)'
+        file_path: ${{ env.LIBRARY_REPORT }}
+        file_type: "json"
+        initial_comment: "${{ env.SLACK_MESSAGE }} (Library)"
         title: "Library vulnerabilities for ${{ env.DEPLOYMENT }}"
-
-    - name: Create GitHub issue for OS vulnerabilities
-      if: env.HAS_VULNS == 'true'
-      env:
-        INPUT_LABEL: vulnerability
-        INPUT_ASSIGNEE: ${{ env.GITHUB_REPOSITORY_OWNER }}
-        INPUT_PROJECT_ID: ${{ env.DEPLOYMENT }}
-        INPUT_FILENAME: os.json
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: scripts/commitIssue.sh
-
-    - name: Create GitHub issue for Library vulnerabilities
-      if: env.HAS_VULNS == 'true'
-      env:
-        INPUT_LABEL: vulnerability
-        INPUT_ASSIGNEE: ${{ env.GITHUB_REPOSITORY_OWNER }}
-        INPUT_PROJECT_ID: ${{ env.DEPLOYMENT }}
-        INPUT_FILENAME: library.json
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: scripts/commitIssue.sh
