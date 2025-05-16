@@ -112,9 +112,9 @@ jobs:
       env:
         DOCKER_IMAGE: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.RELEASE_REVISION }}
 
-    - name: Check vulnerabilities from Trivy reports
+    - name: Check OS vulnerabilities from Trivy reports
       run: |
-        total=$(jq '.Results[].Vulnerabilities | length' "os.json" "lib.json" 2>/dev/null | awk '{s+=$1} END {print s}')
+        total=$(jq '.Results[].Vulnerabilities | length' "os.json" 2>/dev/null | awk '{s+=$1} END {print s}')
         if [[ $total -gt 0 ]]; then
           echo "SLACK_MESSAGE=:disappointed: Found $total vulnerabilities in ${{ env.DEPLOYMENT }}" >> $GITHUB_ENV
           echo "HAS_VULNS=true" >> $GITHUB_ENV
@@ -163,6 +163,17 @@ jobs:
         file_type: "text"
         initial_comment: "${{ env.SLACK_MESSAGE }} (OS)"
         title: "OS vulnerabilities for ${{ env.DEPLOYMENT }}"
+
+    - name: Check Library vulnerabilities from Trivy reports
+      run: |
+        total=$(jq '.Results[].Vulnerabilities | length' "lib.json" 2>/dev/null | awk '{s+=$1} END {print s}')
+        if [[ $total -gt 0 ]]; then
+          echo "SLACK_MESSAGE=:disappointed: Found $total vulnerabilities in ${{ env.DEPLOYMENT }}" >> $GITHUB_ENV
+          echo "HAS_VULNS=true" >> $GITHUB_ENV
+        else
+          echo "SLACK_MESSAGE=:blush: No vulnerabilities found in ${{ env.DEPLOYMENT }}" >> $GITHUB_ENV
+          echo "HAS_VULNS=false" >> $GITHUB_ENV
+        fi
 
     - name: Upload Library report to Slack
       uses: MeilCli/slack-upload-file@v4
