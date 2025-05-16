@@ -96,7 +96,7 @@ jobs:
             --format json \
             --timeout 10m \
             --ignore-policy .trivy/trivy-ignore.yaml \
-            --output "$LIBRARY_REPORT" \
+            --output lib.json \
             "$DOCKER_IMAGE"
         else
           echo "Running without ignore-policy"
@@ -106,7 +106,7 @@ jobs:
             --vuln-type library \
             --format json \
             --timeout 10m \
-            --output "$LIBRARY_REPORT" \
+            --output os.json \
             "$DOCKER_IMAGE"
         fi
       env:
