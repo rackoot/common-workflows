@@ -63,7 +63,9 @@ jobs:
       env:
         RELEASE_IMAGE: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.RELEASE_REVISION }}
       run: |
+        docker buildx use ${{ steps.buildx.outputs.name }}
         docker buildx build \
+          --builder ${{ steps.buildx.outputs.name }} \
           --push \
           --tag ${{ env.RELEASE_IMAGE }} \
           -f ${{ inputs.DOCKER_FILE }} \
